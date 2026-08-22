@@ -1,56 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Compass, 
   Calendar, 
-  DollarSign, 
-  Image as ImageIcon, 
   Sparkles, 
   ArrowRight, 
   Globe, 
   Lock, 
   Check, 
-  Eye 
+  Eye,
+  MapPin
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { Currency } from '../types';
+import { formatCurrency, getCurrencySymbol } from '../utils/formatters';
 
 const CURATED_COVERS = [
   {
     name: 'Paris Romance',
+    location: 'France',
     url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Tokyo Neon & Temples',
+    location: 'Japan',
     url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Swiss Alpine Peaks',
+    location: 'Switzerland',
     url: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1200&q=80',
   },
   {
+    name: 'Taj Mahal Heritage',
+    location: 'India',
+    url: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
     name: 'Santorini Sunset',
+    location: 'Greece',
     url: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Bali Tropical Haven',
+    location: 'Indonesia',
     url: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80',
   },
   {
+    name: 'Rome Colosseum',
+    location: 'Italy',
+    url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    name: 'Dubai Modern Oasis',
+    location: 'UAE',
+    url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
     name: 'New York Skyline',
+    location: 'USA',
     url: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1200&q=80',
   }
 ];
 
 export const CreateTrip: React.FC = () => {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [totalBudget, setTotalBudget] = useState('2500');
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const [currency, setCurrency] = useState<Currency>((user?.home_currency as Currency) || 'INR');
   const [coverImage, setCoverImage] = useState(CURATED_COVERS[0].url);
   const [customCoverUrl, setCustomCoverUrl] = useState('');
   const [isPublic, setIsPublic] = useState(true);
@@ -58,6 +81,16 @@ export const CreateTrip: React.FC = () => {
 
   const { success, error } = useToast();
   const navigate = useNavigate();
+
+  // Set default currency according to user
+  useEffect(() => {
+    if (user?.home_currency) {
+      setCurrency(user.home_currency as Currency);
+    }
+  }, [user]);
+
+  // Today's date string YYYY-MM-DD for min date validation
+  const todayStr = new Date().toISOString().split('T')[0];
 
   // Calculate duration
   const getDurationDays = () => {
@@ -86,6 +119,10 @@ export const CreateTrip: React.FC = () => {
       error('Invalid Date Range', 'End date cannot be earlier than start date.');
       return;
     }
+    if (startDate < todayStr) {
+      error('Invalid Start Date', 'Start date cannot be in the past.');
+      return;
+    }
 
     setIsSubmitting(true);
     const finalCover = customCoverUrl.trim() || coverImage;
@@ -103,14 +140,13 @@ export const CreateTrip: React.FC = () => {
       });
 
       if (res.success && res.tripId) {
-        // Trigger celebratory confetti
         confetti({
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 }
         });
 
-        success('Trip Initiated', 'Now add stops and assign activities in the builder.');
+        success('Trip Initiated', 'Now add destinations and assign activities in the builder.');
         navigate(`/itinerary/${res.tripId}/builder`);
       }
     } catch (err: any) {
@@ -159,7 +195,7 @@ export const CreateTrip: React.FC = () => {
               />
             </div>
 
-            {/* Dates Row */}
+            {/* Dates Row with min date constraints */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
@@ -170,8 +206,14 @@ export const CreateTrip: React.FC = () => {
                   <input
                     type="date"
                     required
+                    min={todayStr}
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (endDate && e.target.value > endDate) {
+                        setEndDate(e.target.value);
+                      }
+                    }}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
                   />
                 </div>
@@ -186,6 +228,7 @@ export const CreateTrip: React.FC = () => {
                   <input
                     type="date"
                     required
+                    min={startDate || todayStr}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
@@ -208,14 +251,16 @@ export const CreateTrip: React.FC = () => {
               </div>
             )}
 
-            {/* Budget & Currency Row */}
+            {/* Budget & Dynamic Currency Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
                   Total Target Budget
                 </label>
                 <div className="relative">
-                  <DollarSign className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">
+                    {getCurrencySymbol(currency).trim()}
+                  </span>
                   <input
                     type="number"
                     min="0"
@@ -235,12 +280,13 @@ export const CreateTrip: React.FC = () => {
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as Currency)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer"
                 >
+                  <option value="INR">INR (₹ - Indian Rupee)</option>
                   <option value="USD">USD ($ - US Dollar)</option>
                   <option value="EUR">EUR (€ - Euro)</option>
-                  <option value="INR">INR (₹ - Indian Rupee)</option>
                   <option value="GBP">GBP (£ - British Pound)</option>
+                  <option value="AED">AED (AED - UAE Dirham)</option>
                   <option value="JPY">JPY (¥ - Japanese Yen)</option>
                 </select>
               </div>
@@ -260,11 +306,14 @@ export const CreateTrip: React.FC = () => {
               />
             </div>
 
-            {/* Curated Cover Image Chooser */}
+            {/* Curated Cover Image Chooser (Upgraded 9 Preset Grid) */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
-                Choose Cover Photo Preset
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  Choose Cover Photo Preset
+                </label>
+                <span className="text-[11px] text-brand-600 font-semibold">9 Destinations</span>
+              </div>
               <div className="grid grid-cols-3 gap-2.5">
                 {CURATED_COVERS.map((cov) => (
                   <button
@@ -276,17 +325,23 @@ export const CreateTrip: React.FC = () => {
                     }}
                     className={`relative h-20 rounded-xl overflow-hidden border-2 transition-all group text-left ${
                       coverImage === cov.url && !customCoverUrl
-                        ? 'border-brand-500 ring-2 ring-brand-500/30 scale-[1.02]'
+                        ? 'border-brand-500 ring-2 ring-brand-500/30 scale-[1.02] shadow-md shadow-brand-500/20'
                         : 'border-transparent opacity-80 hover:opacity-100'
                     }`}
                   >
                     <img src={cov.url} alt={cov.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                    <span className="absolute bottom-1 left-1.5 right-1.5 text-[10px] font-bold text-white truncate">
-                      {cov.name}
-                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <div className="absolute bottom-1 left-1.5 right-1.5">
+                      <p className="text-[10px] font-bold text-white truncate leading-tight">
+                        {cov.name}
+                      </p>
+                      <p className="text-[8px] text-white/70 truncate flex items-center gap-0.5">
+                        <MapPin className="w-2.5 h-2.5" />
+                        <span>{cov.location}</span>
+                      </p>
+                    </div>
                     {coverImage === cov.url && !customCoverUrl && (
-                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-500 text-white flex items-center justify-center">
+                      <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-brand-500 text-white flex items-center justify-center shadow">
                         <Check className="w-2.5 h-2.5" />
                       </div>
                     )}
@@ -381,7 +436,7 @@ export const CreateTrip: React.FC = () => {
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold">
                 <span className="text-slate-500">Target Budget:</span>
                 <span className="text-brand-600 dark:text-brand-400 font-bold">
-                  ${parseFloat(totalBudget || '0').toLocaleString()} {currency}
+                  {formatCurrency(parseFloat(totalBudget || '0'), currency)}
                 </span>
               </div>
             </div>

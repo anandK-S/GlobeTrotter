@@ -26,6 +26,7 @@ import { Trip, TripStop, Destination, MasterActivity, TransportMode, ActivityCat
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { Modal } from '../components/Modal';
+import { formatCurrency, getCurrencySymbol } from '../utils/formatters';
 
 export const ItineraryBuilder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -290,7 +291,7 @@ export const ItineraryBuilder: React.FC = () => {
             {trip.title}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Dates: {trip.start_date} to {trip.end_date} &bull; Target Budget: <strong>${trip.total_budget.toLocaleString()} {trip.currency}</strong>
+            Dates: {trip.start_date} to {trip.end_date} &bull; Target Budget: <strong>{formatCurrency(trip.total_budget, trip.currency)}</strong>
           </p>
         </div>
 
@@ -371,9 +372,9 @@ export const ItineraryBuilder: React.FC = () => {
                     <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
                       <span>Dates: {stop.arrival_date || 'TBD'} &rarr; {stop.departure_date || 'TBD'}</span>
                       <span>&bull;</span>
-                      <span>Lodging: <strong>${stop.stay_cost}</strong></span>
+                      <span>Lodging: <strong>{formatCurrency(stop.stay_cost, trip.currency)}</strong></span>
                       <span>&bull;</span>
-                      <span>Transit: <strong>${stop.transport_cost}</strong></span>
+                      <span>Transit: <strong>{formatCurrency(stop.transport_cost, trip.currency)}</strong></span>
                     </p>
                   </div>
                 </div>
@@ -454,7 +455,7 @@ export const ItineraryBuilder: React.FC = () => {
                             <span>{act.category}</span>
                             <span>&bull;</span>
                             <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                              {act.cost === 0 ? 'Free' : `$${act.cost}`}
+                              {act.cost === 0 ? 'Free' : formatCurrency(act.cost, trip.currency)}
                             </span>
                             <span>&bull;</span>
                             <span>{act.duration_hours}h</span>
@@ -594,7 +595,7 @@ export const ItineraryBuilder: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Transit Cost ($)
+                Transit Cost ({getCurrencySymbol(trip.currency).trim()})
               </label>
               <input
                 type="number"
@@ -606,7 +607,7 @@ export const ItineraryBuilder: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Lodging Cost ($)
+                Lodging Cost ({getCurrencySymbol(trip.currency).trim()})
               </label>
               <input
                 type="number"
@@ -665,7 +666,7 @@ export const ItineraryBuilder: React.FC = () => {
                   >
                     <div>
                       <h5 className="font-bold text-slate-900 dark:text-slate-100">{act.title}</h5>
-                      <span className="text-slate-500">{act.category} &bull; ${act.cost} &bull; {act.duration_hours}h</span>
+                      <span className="text-slate-500">{act.category} &bull; {formatCurrency(act.cost, trip.currency)} &bull; {act.duration_hours}h</span>
                     </div>
                     <button
                       type="button"
@@ -716,7 +717,9 @@ export const ItineraryBuilder: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Estimated Cost ($)</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">
+                  Estimated Cost ({getCurrencySymbol(trip.currency).trim()})
+                </label>
                 <input
                   type="number"
                   min="0"

@@ -17,12 +17,15 @@ import {
   Bus, 
   Car,
   CheckCircle2,
-  Copy
+  Copy,
+  Plus,
+  Compass
 } from 'lucide-react';
 import { Trip, TripStop } from '../types';
 import { api } from '../services/api';
 import { MapView } from '../components/MapView';
 import { useToast } from '../context/ToastContext';
+import { formatCurrency } from '../utils/formatters';
 
 export const ItineraryView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -114,7 +117,7 @@ export const ItineraryView: React.FC = () => {
               </span>
               <span className="flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-emerald-400" />
-                Est. Total: ${metrics?.total_estimated_cost.toLocaleString()} / Budget: ${trip.total_budget.toLocaleString()}
+                Est. Total: <strong>{formatCurrency(metrics?.total_estimated_cost || 0, trip.currency)}</strong> / Budget: <strong>{formatCurrency(trip.total_budget, trip.currency)}</strong>
               </span>
             </div>
           </div>
@@ -198,123 +201,161 @@ export const ItineraryView: React.FC = () => {
             stops={stops}
             selectedStopId={selectedStopId}
             onSelectStop={(s) => setSelectedStopId(s.id)}
-            className="h-[500px] w-full rounded-3xl"
+            className="h-[520px] w-full rounded-3xl"
           />
 
-          {/* City preview chips below map */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {stops.map((stop, idx) => (
-              <button
-                key={stop.id}
-                onClick={() => setSelectedStopId(stop.id)}
-                className={`p-3 rounded-2xl border text-left transition-all ${
-                  selectedStopId === stop.id
-                    ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/40 ring-2 ring-brand-500/20'
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center">
-                    {idx + 1}
-                  </span>
-                  <span className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
-                    {stop.city_name}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 mt-1 truncate">{stop.country}</p>
-              </button>
-            ))}
-          </div>
+          {stops.length > 0 ? (
+            /* City preview chips below map */
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {stops.map((stop, idx) => (
+                <button
+                  key={stop.id}
+                  onClick={() => setSelectedStopId(stop.id)}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    selectedStopId === stop.id
+                      ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/40 ring-2 ring-brand-500/20 shadow-sm'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                      {stop.city_name}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1 truncate">{stop.country}</p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-500">
+              Add destination stops to view interactive flight paths and markers on this map.
+            </div>
+          )}
         </div>
       )}
 
       {/* View Mode 2: Day-by-Day Timeline Stream */}
       {viewMode === 'timeline' && (
         <div className="space-y-8">
-          {stops.map((stop, sIdx) => (
-            <div
-              key={stop.id}
-              className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden"
-            >
-              {/* City Stop Banner */}
-              <div className="p-6 bg-gradient-to-r from-slate-50 to-brand-50/30 dark:from-slate-800/50 dark:to-slate-800/20 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-500 text-white font-black text-lg flex items-center justify-center shadow-md">
-                    {sIdx + 1}
+          {stops.length === 0 ? (
+            <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 space-y-4 shadow-sm">
+              <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto">
+                <Compass className="w-7 h-7" />
+              </div>
+              <div className="max-w-md mx-auto space-y-1">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                  Your Itinerary Has No Stops Yet
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Add destination cities (Paris, Tokyo, Rome, Bali, etc.) in the builder to start scheduling daily activities and calculating budgets.
+                </p>
+              </div>
+              <Link
+                to={`/itinerary/${trip.id}/builder`}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Open Builder to Add Stops</span>
+              </Link>
+            </div>
+          ) : (
+            stops.map((stop, sIdx) => (
+              <div
+                key={stop.id}
+                className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden"
+              >
+                {/* City Stop Banner */}
+                <div className="p-6 bg-gradient-to-r from-slate-50 to-brand-50/30 dark:from-slate-800/50 dark:to-slate-800/20 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-500 text-white font-black text-lg flex items-center justify-center shadow-md">
+                      {sIdx + 1}
+                    </div>
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
+                        {stop.city_name}, {stop.country}
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Dates: {stop.arrival_date || 'Date TBD'} {stop.departure_date ? `to ${stop.departure_date}` : ''} &bull; Transit: <strong className="capitalize">{stop.transport_mode}</strong> ({formatCurrency(stop.transport_cost || 0, trip.currency)}) &bull; Lodging: <strong>{formatCurrency(stop.stay_cost || 0, trip.currency)}</strong>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
-                      {stop.city_name}, {stop.country}
-                    </h2>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Dates: {stop.arrival_date || 'Date TBD'} {stop.departure_date ? `to ${stop.departure_date}` : ''} &bull; Transit: <strong className="capitalize">{stop.transport_mode}</strong> (${stop.transport_cost}) &bull; Lodging: <strong>${stop.stay_cost}</strong>
-                    </p>
-                  </div>
+
+                  <span className="self-start sm:self-center px-3 py-1 rounded-full text-xs font-bold bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
+                    {stop.activities?.length || 0} Activities Planned
+                  </span>
                 </div>
 
-                <span className="self-start sm:self-center px-3 py-1 rounded-full text-xs font-bold bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
-                  {stop.activities?.length || 0} Activities Planned
-                </span>
-              </div>
+                {/* Day-Wise Activities Layout */}
+                <div className="p-6">
+                  {stop.activities && stop.activities.length > 0 ? (
+                    <div className="relative pl-6 border-l-2 border-brand-200 dark:border-brand-900 space-y-6">
+                      {stop.activities.map((act) => (
+                        <div key={act.id} className="relative group">
+                          {/* Timeline Pin */}
+                          <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-brand-500 ring-4 ring-white dark:ring-slate-900"></div>
 
-              {/* Day-Wise Activities Layout */}
-              <div className="p-6">
-                {stop.activities && stop.activities.length > 0 ? (
-                  <div className="relative pl-6 border-l-2 border-brand-200 dark:border-brand-900 space-y-6">
-                    {stop.activities.map((act) => (
-                      <div key={act.id} className="relative group">
-                        {/* Timeline Pin */}
-                        <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-brand-500 ring-4 ring-white dark:ring-slate-900"></div>
-
-                        {/* Activity Card Block */}
-                        <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 hover:border-brand-500/50 shadow-xs transition-all">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold px-2 py-0.5 rounded bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
-                                Day {act.day_number}
-                              </span>
-                              {act.scheduled_time && (
-                                <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {act.scheduled_time}
+                          {/* Activity Card Block */}
+                          <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 hover:border-brand-500/50 shadow-xs transition-all">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
+                                  Day {act.day_number}
                                 </span>
-                              )}
-                              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-                                {act.category}
-                              </span>
+                                {act.scheduled_time && (
+                                  <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    {act.scheduled_time}
+                                  </span>
+                                )}
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                  {act.category}
+                                </span>
+                              </div>
+
+                              <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                {act.cost === 0 ? 'Free Activity' : formatCurrency(act.cost, trip.currency)}
+                              </div>
                             </div>
 
-                            <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                              {act.cost === 0 ? 'Free Activity' : `$${act.cost}`}
+                            <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
+                              {act.title}
+                            </h3>
+
+                            {act.description && (
+                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                {act.description}
+                              </p>
+                            )}
+
+                            <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-[11px] text-slate-500">
+                              <span>Duration: <strong>{act.duration_hours} hours</strong></span>
                             </div>
-                          </div>
-
-                          <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
-                            {act.title}
-                          </h3>
-
-                          {act.description && (
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                              {act.description}
-                            </p>
-                          )}
-
-                          <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-[11px] text-slate-500">
-                            <span>Duration: <strong>{act.duration_hours} hours</strong></span>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic text-center py-4">
-                    No scheduled activities for this stop yet.
-                  </p>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="text-xs text-slate-400 italic mb-2">
+                        No scheduled activities for this stop yet.
+                      </p>
+                      <Link
+                        to={`/itinerary/${trip.id}/builder`}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:underline"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Schedule Activities in Builder</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
       )}
 
