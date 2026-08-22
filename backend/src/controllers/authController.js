@@ -99,8 +99,7 @@ export async function register(req, res) {
         home_currency: currency,
         preferences: ['Culture', 'Foodie', 'Sightseeing'],
         is_verified: 1
-      },
-      otpPreview: otp
+      }
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -183,9 +182,9 @@ export async function forgotPassword(req, res) {
     const user = await db.get('SELECT id, name, email FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
 
     if (!user) {
-      return res.json({
-        success: true,
-        message: 'If an account exists with this email, a 6-digit verification code has been dispatched.'
+      return res.status(404).json({
+        success: false,
+        message: 'No registered account found with this email address. Please check your email or create an account.'
       });
     }
 
@@ -208,8 +207,7 @@ export async function forgotPassword(req, res) {
 
     return res.json({
       success: true,
-      message: 'A 6-digit password reset verification code has been sent via Brevo.',
-      otpPreview: otp
+      message: 'A 6-digit verification security code has been delivered to your email inbox.'
     });
   } catch (error) {
     console.error('Forgot Password Error:', error);

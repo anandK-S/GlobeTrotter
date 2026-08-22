@@ -66,7 +66,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         </div>
 
         {/* Brand Logo */}
-        <Logo size="lg" showBadge={false} className="justify-center mb-3" />
+        <Logo size="lg" className="justify-center mb-3" />
 
         {/* Dynamic Changing Travel Message */}
         <div className="h-8 flex items-center justify-center my-2">

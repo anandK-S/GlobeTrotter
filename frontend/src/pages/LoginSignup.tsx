@@ -36,10 +36,17 @@ const CARTOON_AVATARS = [
 ];
 
 export const LoginSignup: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>(initialMode);
   
+  // Sync mode whenever URL search parameters change
+  useEffect(() => {
+    const qMode = searchParams.get('mode');
+    if (qMode === 'signup') setMode('signup');
+    else if (qMode === 'login') setMode('login');
+  }, [searchParams]);
+
   // Form states
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,7 +65,6 @@ export const LoginSignup: React.FC = () => {
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [resendCountdown, setResendCountdown] = useState(0);
-  const [otpDevNotice, setOtpDevNotice] = useState<string | null>(null);
 
   // Validation Touch States
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
@@ -160,10 +166,7 @@ export const LoginSignup: React.FC = () => {
       const res = await api.auth.forgotPassword(email.trim());
       if (res.success) {
         setResendCountdown(60);
-        success('Verification Code Sent', 'A fresh 6-digit code has been delivered to your email.');
-        if (res.otpPreview) {
-          setOtpDevNotice(`Verification Code: ${res.otpPreview}`);
-        }
+        success('Verification Code Dispatched', 'A fresh 6-digit security code has been delivered to your email inbox.');
       }
     } catch (err: any) {
       error('Resend Failed', err.message);
@@ -252,10 +255,7 @@ export const LoginSignup: React.FC = () => {
       try {
         const res = await api.auth.forgotPassword(email.trim());
         if (res.success) {
-          success('Verification Code Sent', 'Check your email for the 6-digit security code.');
-          if (res.otpPreview) {
-            setOtpDevNotice(`Verification Code: ${res.otpPreview}`);
-          }
+          success('Verification Code Dispatched', 'A 6-digit security code has been delivered to your email inbox.');
           setResendCountdown(60);
           setMode('reset');
         }
@@ -358,18 +358,6 @@ export const LoginSignup: React.FC = () => {
                 {mode === 'reset' && 'Enter the 6-digit code sent to your email to verify and set a new password.'}
               </p>
             </div>
-
-            {/* Verification Notice Banner if in Dev Mode */}
-            {otpDevNotice && (
-              <motion.div 
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-5 p-3 sm:p-3.5 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 font-mono flex items-center gap-2.5 shadow-sm"
-              >
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="font-semibold">{otpDevNotice}</span>
-              </motion.div>
-            )}
 
             {/* Main Form */}
             <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4" noValidate>
