@@ -284,14 +284,46 @@ export const UserProfile: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Avatar Photo URL
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Traveler Cartoon Avatar
               </label>
+              <div className="grid grid-cols-6 gap-2 sm:gap-3 mb-3">
+                {[
+                  { id: 'adventurer-1', name: 'Explorer Felix', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4' },
+                  { id: 'adventurer-2', name: 'Nomad Aria', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aria&backgroundColor=ffd5dc' },
+                  { id: 'adventurer-3', name: 'Hiker Leo', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=c0aede' },
+                  { id: 'adventurer-4', name: 'Traveler Maya', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Maya&backgroundColor=ffdfbf' },
+                  { id: 'adventurer-5', name: 'Backpacker Sam', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sam&backgroundColor=d1d4f9' },
+                  { id: 'adventurer-6', name: 'Captain Zoe', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Zoe&backgroundColor=c1f0db' }
+                ].map((av) => {
+                  const isSelected = avatarUrl === av.url;
+                  return (
+                    <button
+                      key={av.id}
+                      type="button"
+                      onClick={() => setAvatarUrl(av.url)}
+                      className={`relative aspect-square rounded-2xl p-1 border-2 transition-all overflow-hidden ${
+                        isSelected
+                          ? 'border-brand-500 ring-4 ring-brand-500/20 scale-105 bg-brand-50/50 dark:bg-brand-950/50'
+                          : 'border-slate-200 dark:border-slate-800 hover:border-brand-300 opacity-80 hover:opacity-100'
+                      }`}
+                      title={av.name}
+                    >
+                      <img src={av.url} alt={av.name} className="w-full h-full object-contain rounded-xl" />
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-sm">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
               <input
                 type="url"
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                placeholder="Or paste custom photo URL..."
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>

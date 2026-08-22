@@ -32,7 +32,7 @@ export async function runSeed() {
     'Traveler User',
     'traveler.user@example.com',
     passwordHashTraveler,
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4',
     'Passionate wanderer exploring the world with GlobeTrotter.',
     'India',
     '+91',

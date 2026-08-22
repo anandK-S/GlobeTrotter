@@ -43,8 +43,7 @@ export async function register(req, res) {
     const finalCountry = country || 'India';
     const finalPhoneCode = phone_code || '+91';
     const finalPhone = phone_number || '';
-    const currency = homeCurrency || (finalCountry === 'India' ? 'INR' : 'USD');
-    const defaultAvatar = avatar_url || `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random()*1000)}?auto=format&fit=crop&w=400&q=80`;
+    const defaultAvatar = avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name.trim())}&backgroundColor=b6e3f4`;
 
     await db.run(`
       INSERT INTO users (id, name, email, password, avatar_url, bio, country, phone_code, phone_number, role, home_currency, preferences, is_verified)
