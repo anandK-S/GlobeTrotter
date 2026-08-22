@@ -40,6 +40,7 @@ app.get('/api/health', (req, res) => {
 
 // ================= AUTH ROUTES =================
 app.post('/api/auth/register', authController.register);
+app.post('/api/auth/verify-email-otp', authController.verifyEmailOtp);
 app.post('/api/auth/login', authController.login);
 app.post('/api/auth/forgot-password', authController.forgotPassword);
 app.post('/api/auth/reset-password', authController.resetPassword);

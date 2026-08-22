@@ -23,6 +23,7 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (params: RegisterParams) => Promise<{ success: boolean; otpPreview?: string }>;
+  verifySignupOtp: (email: string, otpCode: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
   refreshProfile: () => Promise<void>;
@@ -89,13 +90,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('globetrotter_token', res.token);
         setToken(res.token);
         setUser(res.user);
-        success('Account Created', 'Welcome to GlobeTrotter. Verification details sent via Brevo.');
+        success('Account Created', 'Welcome to GlobeTrotter! Verification email dispatched.');
         return { success: true, otpPreview: res.otpPreview };
       }
       return { success: false };
     } catch (err: any) {
       error('Registration Failed', err.message || 'Unable to create account');
       return { success: false };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifySignupOtp = async (email: string, otpCode: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      const res = await api.auth.verifyEmailOtp({ email, otpCode });
+      if (res.success && res.token) {
+        localStorage.setItem('globetrotter_token', res.token);
+        setToken(res.token);
+        setUser(res.user);
+        success('Account Verified', 'Your email has been confirmed. Welcome aboard!');
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      error('Verification Failed', err.message || 'Invalid or expired code.');
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -146,6 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         login,
         register,
+        verifySignupOtp,
         logout,
         updateProfile,
         refreshProfile

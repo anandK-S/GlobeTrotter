@@ -49,6 +49,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body)
     }),
+    verifyEmailOtp: (body: { email: string; otpCode: string }) => request<{ success: boolean; token: string; user: User; message: string }>('/auth/verify-email-otp', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    }),
     login: (body: any) => request<{ success: boolean; token: string; user: User; message: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(body)

@@ -43,6 +43,7 @@ export async function register(req, res) {
     const finalCountry = country || 'India';
     const finalPhoneCode = phone_code || '+91';
     const finalPhone = phone_number || '';
+    const currency = homeCurrency || (finalCountry === 'India' ? 'INR' : 'USD');
     const defaultAvatar = avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name.trim())}&backgroundColor=b6e3f4`;
 
     await db.run(`
@@ -263,6 +264,64 @@ export async function resetPassword(req, res) {
   } catch (error) {
     console.error('Reset Password Error:', error);
     return res.status(500).json({ success: false, message: 'Server error resetting password.' });
+  }
+}
+
+/**
+ * Verify Signup Email OTP
+ */
+export async function verifyEmailOtp(req, res) {
+  try {
+    const { email, otpCode } = req.body;
+    if (!email || !otpCode) {
+      return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
+    }
+
+    const db = await getDb();
+    const verification = await db.get(`
+      SELECT * FROM email_verifications 
+      WHERE LOWER(email) = LOWER(?) AND otp_code = ? AND purpose = 'signup'
+      ORDER BY created_at DESC LIMIT 1
+    `, [email.trim(), otpCode.trim()]);
+
+    if (!verification) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code.' });
+    }
+
+    if (new Date(verification.expires_at) < new Date()) {
+      return res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+    }
+
+    await db.run('UPDATE users SET is_verified = 1 WHERE LOWER(email) = LOWER(?)', [email.trim()]);
+    await db.run('DELETE FROM email_verifications WHERE id = ?', [verification.id]);
+
+    const user = await db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role, name: user.name },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.json({
+      success: true,
+      message: 'Email successfully verified and account activated!',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar_url: user.avatar_url,
+        country: user.country,
+        phone_code: user.phone_code,
+        phone_number: user.phone_number,
+        role: user.role,
+        home_currency: user.home_currency,
+        is_verified: 1
+      }
+    });
+  } catch (error) {
+    console.error('Verify Email OTP Error:', error);
+    return res.status(500).json({ success: false, message: 'Server error verifying email code.' });
   }
 }
 
