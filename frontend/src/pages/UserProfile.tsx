@@ -319,13 +319,6 @@ export const UserProfile: React.FC = () => {
                   );
                 })}
               </div>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="Or paste custom photo URL..."
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              />
             </div>
 
             <div>

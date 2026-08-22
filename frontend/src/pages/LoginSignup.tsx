@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Compass, 
   Mail, 
   Lock, 
   User as UserIcon, 
@@ -13,19 +12,20 @@ import {
   EyeOff, 
   RefreshCw, 
   Check, 
-  AlertCircle,
-  Sparkles,
-  MapPin,
-  Plane,
-  Shield
+  AlertCircle, 
+  Sparkles, 
+  MapPin, 
+  Plane, 
+  Compass,
+  ExternalLink 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
-import { COUNTRIES, getCountryByName } from '../utils/countries';
+import { COUNTRIES, getCountryByName, validatePhoneNumber } from '../utils/countries';
 import { Logo } from '../components/Logo';
 
-// 6 Cartoon Travel Adventurer Avatars
+// 6 Cartoon Travel Adventurer Avatars (DiceBear Vector Set)
 const CARTOON_AVATARS = [
   { id: 'adventurer-1', name: 'Explorer Felix', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4' },
   { id: 'adventurer-2', name: 'Nomad Aria', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aria&backgroundColor=ffd5dc' },
@@ -36,9 +36,9 @@ const CARTOON_AVATARS = [
 ];
 
 export const LoginSignup: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'reset' | 'verify_signup'>(initialMode);
   
   // Sync mode whenever URL search parameters change
   useEffect(() => {
@@ -53,7 +53,6 @@ export const LoginSignup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatarUrl, setAvatarUrl] = useState(CARTOON_AVATARS[0].url);
-  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('India');
   const [phoneCode, setPhoneCode] = useState('+91');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -69,7 +68,7 @@ export const LoginSignup: React.FC = () => {
   // Validation Touch States
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
-  const { login, register, isAuthenticated } = useAuth();
+  const { login, register, verifySignupOtp, isAuthenticated } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
 
@@ -104,9 +103,12 @@ export const LoginSignup: React.FC = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isNameValid = name.trim().length >= 2 && /^[a-zA-Z\s]+$/.test(name.trim());
   const isEmailValid = emailRegex.test(email.trim());
-  const isPhoneValid = phoneNumber.trim().length >= 7 && /^[0-9]+$/.test(phoneNumber.trim());
+  const phoneValidation = validatePhoneNumber(phoneNumber, selectedCountry);
+  const isPhoneValid = phoneValidation.isValid;
   const isPasswordLengthValid = password.length >= 6;
   const isPasswordMatching = password.length > 0 && password === confirmPassword;
+
+  const currentCountryInfo = getCountryByName(selectedCountry);
 
   const getPasswordStrength = (pass: string) => {
     if (!pass) return { score: 0, label: '', color: 'bg-slate-200' };
@@ -176,7 +178,6 @@ export const LoginSignup: React.FC = () => {
   // Form Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ name: true, email: true, phone: true, password: true, confirmPassword: true });
 
     // Validate Sign In
     if (mode === 'login') {
@@ -209,7 +210,7 @@ export const LoginSignup: React.FC = () => {
         return;
       }
       if (!isPhoneValid) {
-        error('Invalid Phone', 'Please enter a valid phone number (digits only).');
+        error('Invalid Phone', phoneValidation.message);
         return;
       }
       if (!isPasswordLengthValid) {
@@ -222,14 +223,12 @@ export const LoginSignup: React.FC = () => {
       }
 
       setIsSubmitting(true);
-      const finalAvatar = customAvatarUrl.trim() || avatarUrl;
-
       try {
         const res = await register({
           name: name.trim(),
           email: email.trim().toLowerCase(),
           password,
-          avatar_url: finalAvatar,
+          avatar_url: avatarUrl,
           country: selectedCountry,
           phone_code: phoneCode,
           phone_number: phoneNumber.trim(),
@@ -237,6 +236,32 @@ export const LoginSignup: React.FC = () => {
         });
 
         if (res.success) {
+          if (res.requiresVerification) {
+            setMode('verify_signup');
+            setResendCountdown(60);
+            setOtpDigits(['', '', '', '', '', '']);
+          } else {
+            navigate('/dashboard');
+          }
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Validate Email OTP Verification upon Sign Up
+    if (mode === 'verify_signup') {
+      const fullOtp = otpDigits.join('');
+      if (fullOtp.length !== 6) {
+        error('Incomplete Code', 'Please enter the full 6-digit verification code.');
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const ok = await verifySignupOtp(email.trim().toLowerCase(), fullOtp);
+        if (ok) {
           navigate('/dashboard');
         }
       } finally {
@@ -260,14 +285,14 @@ export const LoginSignup: React.FC = () => {
           setMode('reset');
         }
       } catch (err: any) {
-        error('Error', err.message);
+        error('Account Not Found', err.message || 'No registered account found with this email address.');
       } finally {
         setIsSubmitting(false);
       }
       return;
     }
 
-    // Validate OTP Reset
+    // Validate OTP Reset Password
     if (mode === 'reset') {
       const fullOtp = otpDigits.join('');
       if (fullOtp.length !== 6) {
@@ -317,24 +342,26 @@ export const LoginSignup: React.FC = () => {
               <Logo size="md" />
 
               {/* Mode Toggle Tabs */}
-              {mode !== 'forgot' && mode !== 'reset' && (
-                <div className="flex rounded-2xl bg-slate-100 dark:bg-slate-800/80 p-1 text-xs font-bold self-start sm:self-auto">
+              {mode !== 'forgot' && mode !== 'reset' && mode !== 'verify_signup' && (
+                <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 self-start sm:self-auto">
                   <button
+                    type="button"
                     onClick={() => { setMode('login'); setTouched({}); }}
-                    className={`relative px-4 py-1.5 sm:py-2 rounded-xl transition-all ${
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       mode === 'login'
-                        ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                   >
                     Sign In
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setMode('signup'); setTouched({}); }}
-                    className={`relative px-4 py-1.5 sm:py-2 rounded-xl transition-all ${
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       mode === 'signup'
-                        ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                   >
                     Sign Up
@@ -348,16 +375,32 @@ export const LoginSignup: React.FC = () => {
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                 {mode === 'login' && 'Welcome Back'}
                 {mode === 'signup' && 'Create Your Travel Account'}
+                {mode === 'verify_signup' && 'Verify Your Email Address'}
                 {mode === 'forgot' && 'Reset Password'}
                 {mode === 'reset' && 'Enter Verification Code'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 {mode === 'login' && 'Sign in to access your custom itineraries, budgets, and saved journeys.'}
                 {mode === 'signup' && 'Choose your travel avatar, country, and contact details to get started.'}
+                {mode === 'verify_signup' && `We have sent a 6-digit security code to ${email || 'your email'}. Enter it below to activate your account.`}
                 {mode === 'forgot' && 'Enter your email to receive a 6-digit verification code.'}
                 {mode === 'reset' && 'Enter the 6-digit code sent to your email to verify and set a new password.'}
               </p>
             </div>
+
+            {/* Direct Open Gmail Button for Verification Screens */}
+            {(mode === 'verify_signup' || mode === 'reset') && (
+              <a 
+                href="https://mail.google.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-300 dark:border-slate-700 mb-5 shadow-sm"
+              >
+                <Mail className="w-4 h-4 text-rose-500" />
+                <span>Open Gmail to Check Code</span>
+                <ExternalLink className="w-3.5 h-3.5 opacity-60 ml-0.5" />
+              </a>
+            )}
 
             {/* Main Form */}
             <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4" noValidate>
@@ -377,173 +420,160 @@ export const LoginSignup: React.FC = () => {
                     
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5">
                       {CARTOON_AVATARS.map((avatar) => {
-                        const isSelected = avatarUrl === avatar.url && !customAvatarUrl;
+                        const isSelected = avatarUrl === avatar.url;
                         return (
                           <motion.button
                             key={avatar.id}
                             type="button"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              setAvatarUrl(avatar.url);
-                              setCustomAvatarUrl('');
-                            }}
-                            className={`relative aspect-square rounded-2xl p-1 border-2 transition-all group overflow-hidden ${
-                              isSelected
-                                ? 'border-brand-500 ring-4 ring-brand-500/20 bg-brand-50/50 dark:bg-brand-950/50 shadow-md'
-                                : 'border-slate-200 dark:border-slate-800 hover:border-brand-300 opacity-80 hover:opacity-100'
+                            onClick={() => setAvatarUrl(avatar.url)}
+                            className={`p-1.5 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 relative ${
+                              isSelected 
+                                ? 'border-brand-500 bg-brand-50/80 dark:bg-brand-950/50 shadow-md shadow-brand-500/20' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white/50 dark:bg-slate-800/50'
                             }`}
-                            title={avatar.name}
                           >
                             <img 
                               src={avatar.url} 
                               alt={avatar.name} 
-                              className="w-full h-full object-contain rounded-xl"
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover bg-slate-100 dark:bg-slate-800"
                             />
+                            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 truncate w-full text-center">
+                              {avatar.name.split(' ')[1]}
+                            </span>
                             {isSelected && (
-                              <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-sm">
-                                <Check className="w-2.5 h-2.5 stroke-[3]" />
-                              </div>
+                              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-brand-500 text-white flex items-center justify-center shadow">
+                                <Check className="w-2.5 h-2.5" />
+                              </span>
                             )}
                           </motion.button>
                         );
                       })}
                     </div>
-
-                    <input
-                      type="url"
-                      value={customAvatarUrl}
-                      onChange={(e) => setCustomAvatarUrl(e.target.value)}
-                      placeholder="Or paste custom avatar photo URL (optional)..."
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                    />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Full Name Input (Signup only) */}
+              {/* Full Name (Sign Up only) */}
               <AnimatePresence>
                 {mode === 'signup' && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
+                    className="space-y-1"
                   >
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
                       Full Name *
                     </label>
                     <div className="relative">
-                      <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <UserIcon className="w-4 h-4" />
+                      </div>
                       <input
                         type="text"
-                        required
                         value={name}
-                        onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Travel Explorer"
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
+                        onBlur={() => setTouched({ ...touched, name: true })}
+                        placeholder="Alex Rivers"
+                        className={`w-full pl-9 pr-9 py-2.5 rounded-xl border text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 transition-all ${
                           touched.name && !isNameValid
-                            ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-400/20'
-                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500'
+                            ? 'border-rose-500 focus:ring-rose-500/30'
+                            : touched.name && isNameValid
+                            ? 'border-emerald-500 focus:ring-emerald-500/30'
+                            : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/30'
                         }`}
                       />
-                      {touched.name && isNameValid && (
-                        <Check className="w-4 h-4 text-emerald-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      {touched.name && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          {isNameValid ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-rose-500" />
+                          )}
+                        </div>
                       )}
                     </div>
                     {touched.name && !isNameValid && (
-                      <p className="text-[11px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 shrink-0" />
-                        <span>Name must be at least 2 characters (letters only).</span>
+                      <p className="text-[11px] text-rose-500 font-medium pl-1">
+                        Name must contain only letters and be at least 2 characters.
                       </p>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Email Address */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                  Email Address *
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="traveler@example.com"
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
-                      touched.email && !isEmailValid
-                        ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-400/20'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500'
-                    }`}
-                  />
-                  {touched.email && isEmailValid && (
-                    <Check className="w-4 h-4 text-emerald-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                  )}
-                </div>
-                {touched.email && !isEmailValid && (
-                  <p className="text-[11px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3 shrink-0" />
-                    <span>Please enter a valid email address (e.g. name@domain.com).</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Home Country & Auto-Bound Phone Dial Code (Signup only) */}
+              {/* Country & Phone Code (Sign Up only) */}
               <AnimatePresence>
                 {mode === 'signup' && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                   >
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    {/* Home Country Selector */}
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
                         Home Country *
                       </label>
-                      <select
-                        value={selectedCountry}
-                        onChange={(e) => handleCountryChange(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                      >
-                        {COUNTRIES.map((c) => (
-                          <option key={c.code} value={c.name}>
-                            {c.name} ({c.dialCode})
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <Globe className="w-4 h-4" />
+                        </div>
+                        <select
+                          value={selectedCountry}
+                          onChange={(e) => handleCountryChange(e.target.value)}
+                          className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all appearance-none font-medium cursor-pointer"
+                        >
+                          {COUNTRIES.map((country) => (
+                            <option key={country.code} value={country.name}>
+                              {country.name} ({country.dialCode})
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                          <span className="text-xs">▼</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                        Phone Number *
-                      </label>
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-mono font-bold shrink-0">
+                    {/* Phone Number with strict Country Rule */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Phone Number *
+                        </label>
+                        <span className="text-[10px] text-slate-400 font-semibold">
+                          {currentCountryInfo.phoneLengths.join(' or ')} digits
+                        </span>
+                      </div>
+                      <div className="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus-within:ring-2 focus-within:ring-brand-500/30">
+                        <span className="px-3 py-2.5 bg-slate-100 dark:bg-slate-700/60 border-r border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 shrink-0">
                           {phoneCode}
                         </span>
                         <input
                           type="tel"
-                          required
                           value={phoneNumber}
-                          onBlur={() => setTouched(prev => ({ ...prev, phone: true }))}
                           onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
-                          placeholder="9876543210"
-                          className={`w-full px-3 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
-                            touched.phone && !isPhoneValid
-                              ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-400/20'
-                              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500'
-                          }`}
+                          onBlur={() => setTouched({ ...touched, phone: true })}
+                          placeholder={currentCountryInfo.placeholder}
+                          className="w-full px-3 py-2.5 text-xs sm:text-sm bg-transparent focus:outline-none"
                         />
+                        {touched.phone && (
+                          <div className="pr-3 flex items-center pointer-events-none">
+                            {isPhoneValid ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-rose-500" />
+                            )}
+                          </div>
+                        )}
                       </div>
                       {touched.phone && !isPhoneValid && (
-                        <p className="text-[11px] text-rose-500 font-semibold mt-1">
-                          Digits only (min 7 digits).
+                        <p className="text-[11px] text-rose-500 font-medium pl-1">
+                          {phoneValidation.message}
                         </p>
                       )}
                     </div>
@@ -551,152 +581,208 @@ export const LoginSignup: React.FC = () => {
                 )}
               </AnimatePresence>
 
-              {/* 6-Digit OTP Box (Reset Mode) */}
-              <AnimatePresence>
-                {mode === 'reset' && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-3 p-3.5 sm:p-4 rounded-2xl bg-brand-50/50 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-900"
-                  >
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        Enter 6-Digit Verification Code
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        disabled={resendCountdown > 0}
-                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${resendCountdown > 0 ? 'animate-spin' : ''}`} />
-                        <span>{resendCountdown > 0 ? `Resend (${resendCountdown}s)` : 'Resend Code'}</span>
-                      </button>
+              {/* Email Address (Login, Signup, Forgot) */}
+              {mode !== 'verify_signup' && mode !== 'reset' && (
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Email Address *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Mail className="w-4 h-4" />
                     </div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onBlur={() => setTouched({ ...touched, email: true })}
+                      placeholder="alex.rivers@gmail.com"
+                      className={`w-full pl-9 pr-9 py-2.5 rounded-xl border text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 transition-all ${
+                        touched.email && !isEmailValid
+                          ? 'border-rose-500 focus:ring-rose-500/30'
+                          : touched.email && isEmailValid
+                          ? 'border-emerald-500 focus:ring-emerald-500/30'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/30'
+                      }`}
+                    />
+                    {touched.email && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        {isEmailValid ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-500" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {touched.email && !isEmailValid && (
+                    <p className="text-[11px] text-rose-500 font-medium pl-1">
+                      Please enter a valid email address.
+                    </p>
+                  )}
+                </div>
+              )}
 
-                    <div className="flex items-center justify-between sm:justify-center gap-1.5 sm:gap-2.5" onPaste={handleOtpPaste}>
-                      {otpDigits.map((digit, index) => (
-                        <input
-                          key={index}
-                          ref={el => { otpInputRefs.current[index] = el; }}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handleOtpDigitChange(index, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                          className="w-10 sm:w-12 h-11 sm:h-13 text-center font-mono font-black text-lg sm:text-xl rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 focus:outline-none transition-all"
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* 6-Digit OTP Input Boxes for Verification / Reset */}
+              {(mode === 'verify_signup' || mode === 'reset') && (
+                <div className="space-y-2 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                      Enter 6-Digit Security Code
+                    </label>
+                    <button
+                      type="button"
+                      disabled={resendCountdown > 0}
+                      onClick={handleResendOtp}
+                      className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${resendCountdown > 0 ? 'animate-spin' : ''}`} />
+                      <span>{resendCountdown > 0 ? `Resend (${resendCountdown}s)` : 'Resend Code'}</span>
+                    </button>
+                  </div>
 
-              {/* Password Input */}
-              {mode !== 'forgot' && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex justify-between gap-2" onPaste={handleOtpPaste}>
+                    {otpDigits.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => { otpInputRefs.current[idx] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                        className="w-10 sm:w-12 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-sm"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Password Fields */}
+              {(mode === 'login' || mode === 'signup' || mode === 'reset') && (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                      {mode === 'reset' ? 'New Password' : 'Password'} *
+                      {mode === 'reset' ? 'New Password *' : 'Password *'}
                     </label>
                     {mode === 'login' && (
                       <button
                         type="button"
                         onClick={() => { setMode('forgot'); setTouched({}); }}
-                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline"
+                        className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline"
                       >
                         Forgot Password?
                       </button>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      required
                       value={password}
-                      onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
                       onChange={(e) => setPassword(e.target.value)}
+                      onBlur={() => setTouched({ ...touched, password: true })}
                       placeholder="••••••••"
-                      className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
+                      className={`w-full pl-9 pr-9 py-2.5 rounded-xl border text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 transition-all ${
                         touched.password && !isPasswordLengthValid
-                          ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-400/20'
-                          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500'
+                          ? 'border-rose-500 focus:ring-rose-500/30'
+                          : touched.password && isPasswordLengthValid
+                          ? 'border-emerald-500 focus:ring-emerald-500/30'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/30'
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  {/* Dynamic Password Strength Indicator */}
+                  {/* Password Strength Indicator (Signup & Reset) */}
                   {(mode === 'signup' || mode === 'reset') && password.length > 0 && (
-                    <div className="mt-2 space-y-1.5">
+                    <div className="space-y-1 pt-1">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400 font-medium">Password Strength:</span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{strength.label}</span>
+                        <span className="font-semibold text-slate-500">Password Strength</span>
+                        <span className={`font-bold ${
+                          strength.label === 'Strong' ? 'text-emerald-500' :
+                          strength.label === 'Good' ? 'text-sky-500' :
+                          strength.label === 'Fair' ? 'text-amber-500' : 'text-rose-500'
+                        }`}>
+                          {strength.label}
+                        </span>
                       </div>
-                      <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                        <div className={`h-full ${strength.color} transition-all duration-300`} style={{ width: `${strength.score}%` }} />
+                      <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${strength.color} transition-all duration-300`}
+                          style={{ width: `${strength.score}%` }}
+                        ></div>
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Confirm Password (Signup only) */}
+              {/* Confirm Password (Sign Up only) */}
               <AnimatePresence>
                 {mode === 'signup' && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
+                    className="space-y-1"
                   >
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
                       Confirm Password *
                     </label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Lock className="w-4 h-4" />
+                      </div>
                       <input
-                        type="password"
-                        required
+                        type={showPassword ? 'text' : 'password'}
                         value={confirmPassword}
-                        onBlur={() => setTouched(prev => ({ ...prev, confirmPassword: true }))}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        onBlur={() => setTouched({ ...touched, confirmPassword: true })}
                         placeholder="••••••••"
-                        className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
+                        className={`w-full pl-9 pr-9 py-2.5 rounded-xl border text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 transition-all ${
                           touched.confirmPassword && !isPasswordMatching
-                            ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-400/20'
-                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500'
+                            ? 'border-rose-500 focus:ring-rose-500/30'
+                            : touched.confirmPassword && isPasswordMatching
+                            ? 'border-emerald-500 focus:ring-emerald-500/30'
+                            : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/30'
                         }`}
                       />
-                      {confirmPassword && isPasswordMatching && (
-                        <Check className="w-4 h-4 text-emerald-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      {touched.confirmPassword && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          {isPasswordMatching ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-rose-500" />
+                          )}
+                        </div>
                       )}
                     </div>
                     {touched.confirmPassword && !isPasswordMatching && (
-                      <p className="text-[11px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 shrink-0" />
-                        <span>Passwords do not match.</span>
+                      <p className="text-[11px] text-rose-500 font-medium pl-1">
+                        Passwords do not match.
                       </p>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Submit Button with Animated Micro-Interactions */}
+              {/* Submit Button with Blocking and Spinner */}
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
-                whileHover={{ scale: 1.015 }}
-                whileTap={{ scale: 0.985 }}
-                className="w-full mt-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-600 hover:to-sky-700 shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                whileHover={!isSubmitting ? { scale: 1.015 } : {}}
+                whileTap={!isSubmitting ? { scale: 0.985 } : {}}
+                className="w-full mt-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-600 hover:to-sky-700 shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -705,6 +791,7 @@ export const LoginSignup: React.FC = () => {
                     <span>
                       {mode === 'login' && 'Sign In to GlobeTrotter'}
                       {mode === 'signup' && 'Create Travel Account'}
+                      {mode === 'verify_signup' && 'Verify Email & Activate Account'}
                       {mode === 'forgot' && 'Send Verification Code'}
                       {mode === 'reset' && 'Verify Code & Set Password'}
                     </span>
@@ -713,7 +800,7 @@ export const LoginSignup: React.FC = () => {
                 )}
               </motion.button>
 
-              {(mode === 'forgot' || mode === 'reset') && (
+              {(mode === 'forgot' || mode === 'reset' || mode === 'verify_signup') && (
                 <button
                   type="button"
                   onClick={() => { setMode('login'); setTouched({}); }}
@@ -726,9 +813,9 @@ export const LoginSignup: React.FC = () => {
 
           </div>
 
-          {/* Clean Minimalist Footer without Emoji */}
+          {/* Clean Minimalist Footer */}
           <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 text-center">
-            &copy; 2026 GlobeTrotter. Built for Odoo Hackathon.
+            &copy; {new Date().getFullYear()} GlobeTrotter. Built for Odoo Hackathon.
           </div>
 
         </div>

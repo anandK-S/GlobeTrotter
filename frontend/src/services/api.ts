@@ -45,7 +45,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   // Auth
   auth: {
-    register: (body: any) => request<{ success: boolean; token: string; user: User; message: string; otpPreview?: string }>('/auth/register', {
+    register: (body: any) => request<{ success: boolean; requiresVerification?: boolean; email?: string; token?: string; user?: User; message: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(body)
     }),

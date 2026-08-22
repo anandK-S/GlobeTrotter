@@ -48,7 +48,7 @@ export async function register(req, res) {
 
     await db.run(`
       INSERT INTO users (id, name, email, password, avatar_url, bio, country, phone_code, phone_number, role, home_currency, preferences, is_verified)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     `, [
       userId,
       name.trim(),
@@ -67,39 +67,20 @@ export async function register(req, res) {
     // Generate Verification OTP
     const otp = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    await db.run('DELETE FROM email_verifications WHERE LOWER(email) = LOWER(?)', [email.trim()]);
     await db.run(`
       INSERT INTO email_verifications (id, email, otp_code, purpose, expires_at)
       VALUES (?, ?, ?, 'signup', ?)
     `, [`otp-${Date.now()}`, email.trim().toLowerCase(), otp, expiresAt]);
 
-    // Send Brevo Emails async
+    // Send Brevo OTP Email async
     sendOtpEmail({ toEmail: email.trim().toLowerCase(), toName: name.trim(), otpCode: otp, purpose: 'signup' }).catch(() => {});
-    sendWelcomeEmail({ toEmail: email.trim().toLowerCase(), toName: name.trim() }).catch(() => {});
-
-    // Create JWT
-    const token = jwt.sign(
-      { id: userId, email: email.trim().toLowerCase(), role: userRole, name: name.trim() },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
 
     return res.status(201).json({
       success: true,
-      message: 'Account registered successfully! Welcome email & OTP dispatched via Brevo.',
-      token,
-      user: {
-        id: userId,
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        avatar_url: defaultAvatar,
-        country: finalCountry,
-        phone_code: finalPhoneCode,
-        phone_number: finalPhone,
-        role: userRole,
-        home_currency: currency,
-        preferences: ['Culture', 'Foodie', 'Sightseeing'],
-        is_verified: 1
-      }
+      requiresVerification: true,
+      email: email.trim().toLowerCase(),
+      message: 'Account created! A 6-digit verification code has been dispatched to your email.'
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -294,6 +275,10 @@ export async function verifyEmailOtp(req, res) {
     await db.run('DELETE FROM email_verifications WHERE id = ?', [verification.id]);
 
     const user = await db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
+    
+    // Dispatch Welcome Email now that email is authenticated
+    sendWelcomeEmail({ toEmail: user.email, toName: user.name }).catch(() => {});
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: user.name },
       JWT_SECRET,

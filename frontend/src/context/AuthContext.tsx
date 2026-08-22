@@ -22,7 +22,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (params: RegisterParams) => Promise<{ success: boolean; otpPreview?: string }>;
+  register: (params: RegisterParams) => Promise<{ success: boolean; requiresVerification?: boolean; email?: string }>;
   verifySignupOtp: (email: string, otpCode: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
@@ -82,16 +82,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (params: RegisterParams): Promise<{ success: boolean; otpPreview?: string }> => {
+  const register = async (params: RegisterParams): Promise<{ success: boolean; requiresVerification?: boolean; email?: string }> => {
     setIsLoading(true);
     try {
       const res = await api.auth.register(params);
-      if (res.success && res.token) {
-        localStorage.setItem('globetrotter_token', res.token);
-        setToken(res.token);
-        setUser(res.user);
-        success('Account Created', 'Welcome to GlobeTrotter! Verification email dispatched.');
-        return { success: true, otpPreview: res.otpPreview };
+      if (res.success) {
+        if (res.requiresVerification) {
+          success('Verification Code Dispatched', 'A 6-digit code has been delivered to your email inbox.');
+          return { success: true, requiresVerification: true, email: res.email || params.email };
+        } else if (res.token && res.user) {
+          localStorage.setItem('globetrotter_token', res.token);
+          setToken(res.token);
+          setUser(res.user);
+          success('Account Created', 'Welcome to GlobeTrotter!');
+          return { success: true, requiresVerification: false };
+        }
       }
       return { success: false };
     } catch (err: any) {
