@@ -105,10 +105,10 @@ async function startServer() {
     }
 
     app.listen(PORT, () => {
-      console.log(`\n🚀 GlobeTrotter Backend API running at: http://localhost:${PORT}`);
-      console.log(`📡 Brevo Transactional Email Service: Active`);
-      console.log(`🔑 Demo User: alex.traveler@example.com / Traveler@123`);
-      console.log(`🛡️ Admin User: admin@globetrotter.com / Admin@123\n`);
+      console.log(`\nGlobeTrotter Backend API running at: http://localhost:${PORT}`);
+      console.log(`Brevo Transactional Email Service: Active`);
+      console.log(`Demo User: traveler.user@example.com / Traveler@123`);
+      console.log(`Admin User: admin@globetrotter.com / Admin@123\n`);
     });
   } catch (err) {
     console.error('Failed to start server:', err);

@@ -124,7 +124,7 @@ export const UserProfile: React.FC = () => {
         home_currency: homeCurrency,
         preferences
       });
-      if (ok) success('Settings Saved! 💾', 'Profile, country, and contact info updated.');
+      if (ok) success('Settings Saved', 'Profile, country, and contact info updated.');
     } finally {
       setIsSaving(false);
     }
@@ -258,7 +258,7 @@ export const UserProfile: React.FC = () => {
                 >
                   {COUNTRIES.map((c) => (
                     <option key={c.code} value={c.name}>
-                      {c.flag} {c.name} ({c.dialCode})
+                      {c.name} ({c.dialCode})
                     </option>
                   ))}
                 </select>

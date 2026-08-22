@@ -34,7 +34,7 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onDelete, onDuplicate 
     const shareUrl = `${window.location.origin}/share/${trip.share_slug || trip.id}`;
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    success('Link Copied! 🔗', 'Public itinerary link copied to clipboard.');
+    success('Link Copied', 'Public itinerary link copied to clipboard.');
     setTimeout(() => setCopied(false), 2000);
     setDropdownOpen(false);
   };

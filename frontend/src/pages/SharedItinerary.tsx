@@ -64,7 +64,7 @@ export const SharedItinerary: React.FC = () => {
           spread: 80,
           origin: { y: 0.6 }
         });
-        success('Trip Forked! 🎒', 'Successfully copied this itinerary to your personal account.');
+        success('Trip Forked', 'Successfully copied this itinerary to your personal account.');
         navigate(`/itinerary/${res.tripId}`);
       }
     } catch (err: any) {
@@ -77,7 +77,7 @@ export const SharedItinerary: React.FC = () => {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopiedLink(true);
-    success('Link Copied! 🔗', 'Public URL copied to clipboard.');
+    success('Link Copied', 'Public URL copied to clipboard.');
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
@@ -240,7 +240,7 @@ export const SharedItinerary: React.FC = () => {
                   {stop.city_name}, {stop.country}
                 </h4>
                 <p className="text-xs text-slate-500">
-                  📅 {stop.arrival_date || 'Date TBD'} to {stop.departure_date || 'Date TBD'} &bull; Transit: <strong className="capitalize">{stop.transport_mode}</strong>
+                  Dates: {stop.arrival_date || 'Date TBD'} to {stop.departure_date || 'Date TBD'} &bull; Transit: <strong className="capitalize">{stop.transport_mode}</strong>
                 </p>
               </div>
             </div>

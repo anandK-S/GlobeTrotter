@@ -110,7 +110,7 @@ export const CreateTrip: React.FC = () => {
           origin: { y: 0.6 }
         });
 
-        success('Trip Initiated! 🎒', 'Now add stops and assign activities in the builder.');
+        success('Trip Initiated', 'Now add stops and assign activities in the builder.');
         navigate(`/itinerary/${res.tripId}/builder`);
       }
     } catch (err: any) {
@@ -368,7 +368,7 @@ export const CreateTrip: React.FC = () => {
                   {title.trim() || 'Your Trip Title Goes Here'}
                 </h3>
                 <p className="text-xs text-white/80 mt-1">
-                  📅 {startDate || 'YYYY-MM-DD'} &bull; {durationDays ? `${durationDays} Days` : 'Multi-Day'}
+                  Dates: {startDate || 'YYYY-MM-DD'} &bull; {durationDays ? `${durationDays} Days` : 'Multi-Day'}
                 </p>
               </div>
             </div>

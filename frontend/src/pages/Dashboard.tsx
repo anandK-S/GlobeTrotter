@@ -62,7 +62,7 @@ export const Dashboard: React.FC = () => {
     try {
       const res = await api.trips.duplicateTrip(id);
       if (res.success) {
-        success('Trip Cloned! 📋', 'Created a duplicate copy in your trips.');
+        success('Trip Cloned', 'Created a duplicate copy in your trips.');
         const tripsRes = await api.trips.getMyTrips();
         if (tripsRes.success) setTrips(tripsRes.trips);
       }

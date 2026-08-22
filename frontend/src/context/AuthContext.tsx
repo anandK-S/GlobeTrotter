@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('globetrotter_token', res.token);
         setToken(res.token);
         setUser(res.user);
-        success(`Welcome back, ${res.user.name}! 🎒`, 'Successfully logged into your travel space.');
+        success(`Welcome back, ${res.user.name}`, 'Successfully logged into your travel space.');
         return true;
       }
       return false;
@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('globetrotter_token', res.token);
         setToken(res.token);
         setUser(res.user);
-        success('Account Created! ✈️', 'Welcome to GlobeTrotter. Verification details sent via Brevo.');
+        success('Account Created', 'Welcome to GlobeTrotter. Verification details sent via Brevo.');
         return { success: true, otpPreview: res.otpPreview };
       }
       return { success: false };

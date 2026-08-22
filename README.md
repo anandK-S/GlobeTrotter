@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🌍 GlobeTrotter — Empowering Personalized Travel Planning
+# GlobeTrotter - Personalized Multi-City Travel Planning Platform
 
-### 🏆 Built for the Odoo Hackathon 2026
+### Built for the Odoo Hackathon 2026
 
 *An intelligent, full-stack multi-city travel planning platform featuring interactive Leaflet route mapping, real-time Chart.js budget forecasting, day-by-day scheduling, Supabase Cloud / Relational database architecture, Brevo transactional email OTP, and public collaborative itinerary sharing.*
 
@@ -22,39 +22,39 @@
 
 ---
 
-## 📑 Table of Contents
-1. [🌟 Winning Features & Highlights](#-winning-features--highlights)
-2. [🗺️ Complete End-to-End System & User Flowcharts](#️-complete-end-to-end-system--user-flowcharts)
-3. [📱 13 Screens Feature Matrix](#-13-screens-feature-matrix)
-4. [🔐 Hybrid Authentication & Brevo Email Flow](#-hybrid-authentication--brevo-email-flow)
-5. [🗄️ Relational Database & Entity Relationship Model](#️-relational-database--entity-relationship-model)
-6. [🔑 Demo Accounts (For Hackathon Judges)](#-demo-accounts-for-hackathon-judges)
-7. [⚡ Supabase Setup (Optional Cloud Mode)](#-supabase-setup-optional-cloud-mode)
-8. [🚀 1-Command Startup & Installation](#-1-command-startup--installation)
-9. [📡 REST API Endpoints Specification](#-rest-api-endpoints-specification)
+## Table of Contents
+1. [Core Features and Capabilities](#core-features-and-capabilities)
+2. [Complete End-to-End System and User Flowcharts](#complete-end-to-end-system-and-user-flowcharts)
+3. [13 Screens Feature Matrix](#13-screens-feature-matrix)
+4. [Hybrid Authentication and Brevo Email Flow](#hybrid-authentication-and-brevo-email-flow)
+5. [Relational Database and Entity Relationship Model](#relational-database-and-entity-relationship-model)
+6. [Demo Accounts](#demo-accounts)
+7. [Supabase Setup](#supabase-setup)
+8. [Installation and Startup Guide](#installation-and-startup-guide)
+9. [REST API Endpoints Specification](#rest-api-endpoints-specification)
 
 ---
 
-## 🌟 Winning Features & Highlights
+## Core Features and Capabilities
 
-- **🎨 Modern Luxury Glassmorphic UI**: Designed with Tailwind CSS, Lucide travel icons, dark/light theme switching, responsive grid layouts, and micro-interactions powered by Framer Motion & Canvas Confetti.
-- **🗺️ Interactive Leaflet Route Maps**: Connected multi-city polyline routes with flight arcs, custom numbered map markers, stop-order pins, and popup activity summaries.
-- **📊 Real-Time Financial Analytics**: Interactive Chart.js Doughnut (Expense Categories) and Stacked Bar (City-by-City Cost Distribution) charts with live over-budget alert banners.
-- **📱 Smart Country & Phone Code Auto-Binding**: Real-time country selector (India 🇮🇳, USA 🇺🇸, UK 🇬🇧, France 🇫🇷, Japan 🇯🇵, UAE 🇦🇪, etc.) that automatically sets the matching international **dial code** (`+91`, `+1`, `+44`, etc.) and default home currency!
-- **📸 Profile Photo Customizer**: Curated high-res avatar presets with live selection rings + custom photo URL input.
-- **⚡ Dual-Backend Architecture**: Works out-of-the-box with a zero-dependency **Relational SQLite Backend** and provides instant 1-click cloud sync with **Supabase PostgreSQL** (`supabase/schema.sql`).
-- **📧 Brevo (Sendinblue) Transactional Emails**: Dispatches 6-digit OTP verification codes and HTML welcome onboarding emails, featuring a zero-config dev simulation fallback for effortless judging.
-- **📋 Public Share & 1-Click Fork**: Shareable public URLs that allow fellow travelers to view, copy, or fork any itinerary into their personal account.
-- **🛡️ Admin & Analytics Governance**: Dedicated administrator control panel with platform KPIs, top destination visit metrics, category spending distributions, and user management.
+- **Modern Glassmorphic UI**: Designed with Tailwind CSS, Lucide travel icons, dark/light theme switching, responsive grid layouts, and micro-interactions powered by Framer Motion and Canvas Confetti.
+- **Interactive Leaflet Route Maps**: Connected multi-city polyline routes with flight arcs, custom numbered map markers, stop-order pins, and popup activity summaries.
+- **Real-Time Financial Analytics**: Interactive Chart.js Doughnut (Expense Categories) and Stacked Bar (City-by-City Cost Distribution) charts with live over-budget alert banners.
+- **Smart Country and Phone Code Auto-Binding**: Real-time country selector (India, United States, United Kingdom, France, Japan, United Arab Emirates, etc.) that automatically sets the matching international dial code (+91, +1, +44, etc.) and default home currency.
+- **Profile Photo Customizer**: Curated avatar presets with selection states plus custom photo URL input.
+- **Dual-Backend Architecture**: Works out-of-the-box with a zero-dependency Relational SQLite Backend and provides instant cloud sync with Supabase PostgreSQL (`supabase/schema.sql`).
+- **Brevo Transactional Emails**: Dispatches 6-digit OTP verification codes and HTML welcome onboarding emails, featuring a development simulation fallback for judging.
+- **Public Share and 1-Click Fork**: Shareable public URLs that allow fellow travelers to view, copy, or fork any itinerary into their personal account.
+- **Admin and Analytics Governance**: Dedicated administrator control panel with platform KPIs, top destination visit metrics, category spending distributions, and user management.
 
 ---
 
-## 🗺️ Complete End-to-End System & User Flowcharts
+## Complete End-to-End System and User Flowcharts
 
-### 1. Platform Navigation & User Journey Flow
+### 1. Platform Navigation and User Journey Flow
 ```mermaid
 flowchart TD
-    Start([🌐 Visitor Lands on GlobeTrotter]) --> CheckAuth{Logged In?}
+    Start([Visitor Lands on GlobeTrotter]) --> CheckAuth{Logged In?}
 
     %% Authentication Branch
     CheckAuth -- No --> AuthPage[Screen 1: Login / Signup / OTP]
@@ -93,7 +93,7 @@ flowchart TD
 
 ---
 
-### 2. Multi-City Trip Builder & Route Execution Pipeline
+### 2. Multi-City Trip Builder and Route Execution Pipeline
 ```mermaid
 flowchart LR
     subgraph Step1["1. Blueprint Setup"]
@@ -120,36 +120,36 @@ flowchart LR
 
 ---
 
-## 📱 13 Screens Feature Matrix
+## 13 Screens Feature Matrix
 
-| # | Screen Name | Route Path | Core Capabilities & Winning Visual Polish |
+| # | Screen Name | Route Path | Core Capabilities and Layout Polish |
 |---|---|---|---|
-| **1** | **Login / Signup / OTP** | `/login` | Split-screen luxury travel artwork, profile photo picker (presets + URL), country selector with auto-dial code (`+91`, `+1`, `+44`), password strength meter, JWT + Supabase + Brevo OTP email flow, and 1-click demo login buttons. |
-| **2** | **Dashboard / Home** | `/dashboard` | Personalized traveler greeting with user avatar, quick KPI cards (Trips, Destinations, Budget), prominent *"Plan New Trip"* hero CTA, recent trips stream, and trending global destinations carousel. |
+| **1** | **Login / Signup / OTP** | `/login` | Split-screen travel artwork, profile photo picker (presets + URL), country selector with auto-dial code (+91, +1, +44), password strength meter, JWT + Supabase + Brevo OTP email flow, and 1-click demo login buttons. |
+| **2** | **Dashboard / Home** | `/dashboard` | Personalized traveler greeting with user avatar, quick KPI cards (Trips, Destinations, Budget), prominent "Plan New Trip" hero CTA, recent trips stream, and trending global destinations carousel. |
 | **3** | **Create Trip** | `/create-trip` | Step-by-step trip blueprint form: Title, start & end date picker with auto-calculated duration, budget input, currency selector, curated high-res cover photos, and live preview card. |
-| **4** | **My Trips (List View)** | `/my-trips` | Filter tabs (*All, Upcoming, Ongoing, Completed*), search bar, Grid/List view toggle, summary cards with budget progress meters, actions (*View, Edit, Duplicate, Share, Delete*). |
+| **4** | **My Trips (List View)** | `/my-trips` | Filter tabs (All, Upcoming, Ongoing, Completed), search bar, Grid/List view toggle, summary cards with budget progress meters, actions (View, Edit, Duplicate, Share, Delete). |
 | **5** | **Itinerary Builder** | `/itinerary/:id/builder` | Interactive multi-city builder: "Add Stop" modal with city search autocomplete, date allocation per stop, drag/move up-down city reordering, transport mode selector (flight, train, bus, car), and activity assigner. |
-| **6** | **Itinerary View** | `/itinerary/:id` | Comprehensive itinerary visualizer: Day-wise breakdown, city headers, activity blocks with time/cost/category badges, and dual view toggle (*Interactive Timeline vs Route Map*), plus Print/PDF export. |
-| **7** | **City Search & Explore** | `/explore-cities` | Global destination discovery directory: Filter by continent/region (*Europe, Asia, Americas, Africa, Oceania*), cost index (`$`, `$$`, `$$$`, `$$$$`), popularity rating, and direct "Add to Trip" action modal. |
-| **8** | **Activity Search & Catalog** | `/activities` | Browse experiences by vibe (*Sightseeing, Food & Dining, Adventure, Culture, Nightlife, Relaxation*), max price filter, and modal preview with instant "Add to Stop" scheduling. |
-| **9** | **Trip Budget & Cost Breakdown** | `/itinerary/:id/budget` | Financial dashboard: Budget vs Total Cost, **interactive Doughnut Chart** (Transport, Accommodation, Activities, Food, Misc) & daily spending **Bar Chart**, currency switcher, and over-budget alert banners. |
+| **6** | **Itinerary View** | `/itinerary/:id` | Comprehensive itinerary visualizer: Day-wise breakdown, city headers, activity blocks with time/cost/category badges, and dual view toggle (Interactive Timeline vs Route Map), plus Print/PDF export. |
+| **7** | **City Search & Explore** | `/explore-cities` | Global destination discovery directory: Filter by continent/region (Europe, Asia, Americas, Africa, Oceania), cost index ($, $$, $$$, $$$$), popularity rating, and direct "Add to Trip" action modal. |
+| **8** | **Activity Search & Catalog** | `/activities` | Browse experiences by category (Sightseeing, Food & Dining, Adventure, Culture, Nightlife, Relaxation), max price filter, and modal preview with instant "Add to Stop" scheduling. |
+| **9** | **Trip Budget & Cost Breakdown** | `/itinerary/:id/budget` | Financial dashboard: Budget vs Total Cost, interactive Doughnut Chart (Transport, Accommodation, Activities, Food, Misc) and daily spending Bar Chart, currency switcher, and over-budget alert banners. |
 | **10** | **Trip Calendar & Timeline** | `/itinerary/:id/calendar` | Interactive calendar view with day ribbons, expandable day views, and sequential activity timeline showing scheduled start times and durations. |
-| **11** | **Shared / Public Itinerary** | `/share/:slug` | Clean read-only presentation page accessible via public URL/slug, interactive route map, summary stats, **"Copy Trip to My Account"** feature, and one-click social share buttons (WhatsApp, Twitter/X, Copy Link). |
-| **12** | **User Profile & Settings** | `/profile` | Editable user details (name, avatar, bio, home country, phone number, currency), travel style tags (*Solo, Luxury, Backpacking, Foodie, Nature*), saved wishlist destinations, and danger-zone account deletion. |
+| **11** | **Shared / Public Itinerary** | `/share/:slug` | Clean read-only presentation page accessible via public URL/slug, interactive route map, summary stats, "Copy Trip to My Account" feature, and one-click social share buttons (WhatsApp, Twitter/X, Copy Link). |
+| **12** | **User Profile & Settings** | `/profile` | Editable user details (name, avatar, bio, home country, phone number, currency), travel style tags (Solo, Luxury, Backpacking, Foodie, Nature), saved wishlist destinations, and danger-zone account deletion. |
 | **13** | **Admin / Analytics Dashboard** | `/admin` | Admin-only control center: Platform KPIs (Total Users, Trips Created, Total Budget), top destination visit rankings, category expenditure stats, and user governance table with role toggles. |
 
 ---
 
-## 🔐 Hybrid Authentication & Brevo Email Flow
+## Hybrid Authentication and Brevo Email Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Traveler as 👤 Traveler
-    participant Frontend as 💻 React 19 Frontend
-    participant Backend as ⚙️ Express Backend
-    participant DB as 🗄️ Relational SQLite / Postgres
-    participant Brevo as 📧 Brevo Email API
+    actor Traveler as Traveler
+    participant Frontend as React 19 Frontend
+    participant Backend as Express Backend
+    participant DB as Relational SQLite / Postgres
+    participant Brevo as Brevo Email API
 
     Traveler->>Frontend: Register (Name, Email, Password, Country, Phone, Photo)
     Frontend->>Backend: POST /api/auth/register
@@ -159,12 +159,12 @@ sequenceDiagram
     Brevo-->>Traveler: Deliver HTML Welcome Email & Code
     Backend-->>Frontend: Return JWT Session Token (7-day validity)
     Frontend->>Frontend: Store token in localStorage & update AuthContext
-    Frontend-->>Traveler: Navigate to Dashboard with Confetti 🎉
+    Frontend-->>Traveler: Navigate to Dashboard
 ```
 
 ---
 
-## 🗄️ Relational Database & Entity Relationship Model
+## Relational Database and Entity Relationship Model
 
 ```mermaid
 erDiagram
@@ -247,20 +247,20 @@ erDiagram
 
 ---
 
-## 🔑 Demo Accounts (For Hackathon Judges)
+## Demo Accounts
 
 | Role | Email | Password | Access / Scope |
 |---|---|---|---|
 | **Traveler (Default)** | `traveler.user@example.com` | `Traveler@123` | Multi-city itineraries, budget analytics, calendar scheduling, wishlist bookmarks |
 | **Administrator** | `admin@globetrotter.com` | `Admin@123` | Platform KPI telemetry, category expenditure charts, user governance directory |
 
-> 💡 **Tip**: On the Login screen (`/login`), click the **"👤 Traveler User"** or **"🛡️ Admin"** 1-click buttons to instantly populate credentials!
+> **Tip**: On the Login screen (`/login`), click the **"Traveler User"** or **"Admin"** 1-click buttons to instantly populate credentials.
 
 ---
 
-## ⚡ Supabase Setup (Optional Cloud Mode)
+## Supabase Setup
 
-GlobeTrotter provides complete, production-ready PostgreSQL integration for Supabase Cloud:
+GlobeTrotter provides complete PostgreSQL integration for Supabase Cloud:
 1. Create a free project at [supabase.com](https://supabase.com/).
 2. Open the **SQL Editor** and paste the contents of **`supabase/schema.sql`** (creates all tables, Row-Level Security policies, and sync triggers).
 3. In `frontend/.env`:
@@ -268,11 +268,11 @@ GlobeTrotter provides complete, production-ready PostgreSQL integration for Supa
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
    ```
-4. The client will automatically activate Supabase Auth & Cloud database synchronization.
+4. The client will automatically activate Supabase Auth and Cloud database synchronization.
 
 ---
 
-## 🚀 1-Command Startup & Installation
+## Installation and Startup Guide
 
 ### Prerequisites
 - Node.js (v18 or higher)
@@ -304,17 +304,17 @@ Open your browser at: **`http://localhost:5173`**
 
 ---
 
-## 📡 REST API Endpoints Specification
+## REST API Endpoints Specification
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Register new user with country, phone, avatar & trigger Brevo emails | No |
-| `POST` | `/api/auth/login` | Authenticate user & receive JWT token | No |
+| `POST` | `/api/auth/register` | Register new user with country, phone, avatar and trigger Brevo emails | No |
+| `POST` | `/api/auth/login` | Authenticate user and receive JWT token | No |
 | `POST` | `/api/auth/forgot-password`| Request 6-digit Brevo OTP verification code | No |
 | `POST` | `/api/auth/reset-password` | Reset password using verified OTP | No |
-| `GET` | `/api/auth/profile` | Get current authenticated user profile & stats | Yes (Bearer) |
+| `GET` | `/api/auth/profile` | Get current authenticated user profile and stats | Yes (Bearer) |
 | `PUT` | `/api/auth/profile` | Update profile, bio, country, phone, preferences | Yes (Bearer) |
-| `GET` | `/api/trips` | Get all user trips with computed stops & costs | Yes (Bearer) |
+| `GET` | `/api/trips` | Get all user trips with computed stops and costs | Yes (Bearer) |
 | `POST` | `/api/trips` | Create new multi-city trip blueprint | Yes (Bearer) |
 | `GET` | `/api/trips/:id` | Get full trip detail with ordered stops and activities | Yes (Bearer) |
 | `POST` | `/api/trips/:id/stops` | Add a destination stop to trip | Yes (Bearer) |
@@ -324,10 +324,10 @@ Open your browser at: **`http://localhost:5173`**
 | `GET` | `/api/trips/share/:slug` | Public read-only trip view by slug | No |
 | `GET` | `/api/destinations` | Explore global destination catalog with filters | No |
 | `POST` | `/api/wishlist/toggle` | Bookmark/unbookmark destination | Yes (Bearer) |
-| `GET` | `/api/admin/analytics` | Admin KPI telemetry & category metrics | Yes (Admin) |
-| `GET` | `/api/admin/users` | Admin user directory & role management | Yes (Admin) |
+| `GET` | `/api/admin/analytics` | Admin KPI telemetry and category metrics | Yes (Admin) |
+| `GET` | `/api/admin/users` | Admin user directory and role management | Yes (Admin) |
 
 ---
 
-## 📄 License & Attribution
-Designed & developed with ❤️ for the **Odoo Hackathon 2026**. Licensed under the [MIT License](LICENSE).
+## License and Attribution
+Designed and developed for the **Odoo Hackathon 2026**. Licensed under the [MIT License](LICENSE).

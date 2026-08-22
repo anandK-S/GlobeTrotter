@@ -61,7 +61,7 @@ export const MyTrips: React.FC = () => {
     try {
       const res = await api.trips.duplicateTrip(id);
       if (res.success) {
-        success('Trip Duplicated! 📋', 'Created a clone in your trip list.');
+        success('Trip Duplicated', 'Created a clone in your trip list.');
         fetchTrips();
       }
     } catch (err: any) {

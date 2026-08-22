@@ -54,7 +54,7 @@ export const ItineraryView: React.FC = () => {
     const url = `${window.location.origin}/share/${trip.share_slug || trip.id}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
-    success('Link Copied! 🔗', 'Public shareable link copied to clipboard.');
+    success('Link Copied', 'Public shareable link copied to clipboard.');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -247,7 +247,7 @@ export const ItineraryView: React.FC = () => {
                       {stop.city_name}, {stop.country}
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      📅 {stop.arrival_date || 'Date TBD'} {stop.departure_date ? `to ${stop.departure_date}` : ''} &bull; Transit: <strong className="capitalize">{stop.transport_mode}</strong> (${stop.transport_cost}) &bull; Lodging: <strong>${stop.stay_cost}</strong>
+                      Dates: {stop.arrival_date || 'Date TBD'} {stop.departure_date ? `to ${stop.departure_date}` : ''} &bull; Transit: <strong className="capitalize">{stop.transport_mode}</strong> (${stop.transport_cost}) &bull; Lodging: <strong>${stop.stay_cost}</strong>
                     </p>
                   </div>
                 </div>

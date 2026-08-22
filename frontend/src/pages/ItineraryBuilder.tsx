@@ -125,7 +125,7 @@ export const ItineraryBuilder: React.FC = () => {
       });
 
       if (res.success) {
-        success('Stop Added! 📍', `${cityName}, ${countryName} added to itinerary.`);
+        success('Stop Added', `${cityName}, ${countryName} added to itinerary.`);
         setAddStopModalOpen(false);
         // Reset form
         setSelectedCityId('');
@@ -209,7 +209,7 @@ export const ItineraryBuilder: React.FC = () => {
       });
 
       if (res.success) {
-        success('Activity Added! 🎟️', `${customActTitle} scheduled.`);
+        success('Activity Added', `${customActTitle} scheduled.`);
         setAddActivityModalOpen(false);
         fetchTrip();
       }
@@ -233,7 +233,7 @@ export const ItineraryBuilder: React.FC = () => {
         day_number: 1
       });
       if (res.success) {
-        success('Added Experience! 🌟', act.title);
+        success('Added Experience', act.title);
         setAddActivityModalOpen(false);
         fetchTrip();
       }
@@ -290,7 +290,7 @@ export const ItineraryBuilder: React.FC = () => {
             {trip.title}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            📅 {trip.start_date} to {trip.end_date} &bull; Target Budget: <strong>${trip.total_budget.toLocaleString()} {trip.currency}</strong>
+            Dates: {trip.start_date} to {trip.end_date} &bull; Target Budget: <strong>${trip.total_budget.toLocaleString()} {trip.currency}</strong>
           </p>
         </div>
 
@@ -369,7 +369,7 @@ export const ItineraryBuilder: React.FC = () => {
                     </div>
                     
                     <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
-                      <span>📅 {stop.arrival_date || 'TBD'} &rarr; {stop.departure_date || 'TBD'}</span>
+                      <span>Dates: {stop.arrival_date || 'TBD'} &rarr; {stop.departure_date || 'TBD'}</span>
                       <span>&bull;</span>
                       <span>Lodging: <strong>${stop.stay_cost}</strong></span>
                       <span>&bull;</span>
@@ -417,7 +417,7 @@ export const ItineraryBuilder: React.FC = () => {
               {/* Stop Notes if any */}
               {stop.notes && (
                 <div className="px-6 py-2 bg-amber-50/50 dark:bg-amber-950/20 text-xs text-amber-800 dark:text-amber-300 border-b border-amber-100 dark:border-amber-900/30">
-                  💡 <strong>Stop Tip:</strong> {stop.notes}
+                  <strong>Stop Tip:</strong> {stop.notes}
                 </div>
               )}
 
@@ -585,11 +585,11 @@ export const ItineraryBuilder: React.FC = () => {
                 onChange={(e) => setStopTransportMode(e.target.value as TransportMode)}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-xs"
               >
-                <option value="flight">✈️ Flight</option>
-                <option value="train">🚄 Train</option>
-                <option value="bus">🚌 Bus</option>
-                <option value="car">🚗 Car / Taxi</option>
-                <option value="boat">⛴️ Ferry / Boat</option>
+                <option value="flight">Flight</option>
+                <option value="train">Train</option>
+                <option value="bus">Bus</option>
+                <option value="car">Car / Taxi</option>
+                <option value="boat">Ferry / Boat</option>
               </select>
             </div>
             <div>

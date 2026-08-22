@@ -123,7 +123,7 @@ export const ActivitySearch: React.FC = () => {
       });
 
       if (res.success) {
-        success('Experience Scheduled! 🎟️', `${selectedAct.title} added to your stop.`);
+        success('Experience Scheduled', `${selectedAct.title} added to your stop.`);
         setModalOpen(false);
       }
     } catch (err: any) {

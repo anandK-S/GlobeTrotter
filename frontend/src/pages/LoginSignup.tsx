@@ -239,14 +239,14 @@ export const LoginSignup: React.FC = () => {
                   onClick={() => fillDemo('traveler')}
                   className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-brand-500 shadow-xs transition-colors"
                 >
-                  👤 Traveler User
+                  Traveler User
                 </button>
                 <button
                   type="button"
                   onClick={() => fillDemo('admin')}
                   className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 shadow-xs transition-colors"
                 >
-                  🛡️ Admin
+                  Admin
                 </button>
               </div>
             </div>
@@ -357,7 +357,7 @@ export const LoginSignup: React.FC = () => {
                     >
                       {COUNTRIES.map((c) => (
                         <option key={c.code} value={c.name}>
-                          {c.flag} {c.name} ({c.dialCode})
+                          {c.name} ({c.dialCode})
                         </option>
                       ))}
                     </select>

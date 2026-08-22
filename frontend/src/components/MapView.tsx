@@ -120,7 +120,7 @@ export const MapView: React.FC<MapViewProps> = ({
                 </h4>
                 {stop.arrival_date && (
                   <p className="text-xs text-slate-500 mt-1">
-                    📅 {stop.arrival_date} {stop.departure_date ? `— ${stop.departure_date}` : ''}
+                    Dates: {stop.arrival_date} {stop.departure_date ? `— ${stop.departure_date}` : ''}
                   </p>
                 )}
                 <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
