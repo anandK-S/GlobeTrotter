@@ -16,7 +16,8 @@ import {
   AlertCircle,
   Sparkles,
   MapPin,
-  Plane
+  Plane,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -158,7 +159,7 @@ export const LoginSignup: React.FC = () => {
       const res = await api.auth.forgotPassword(email.trim());
       if (res.success) {
         setResendCountdown(60);
-        success('Verification Code Resent', 'A fresh 6-digit OTP has been sent via Brevo.');
+        success('Verification Code Sent', 'A fresh 6-digit code has been delivered to your email.');
         if (res.otpPreview) {
           setOtpDevNotice(`Verification Code: ${res.otpPreview}`);
         }
@@ -250,7 +251,7 @@ export const LoginSignup: React.FC = () => {
       try {
         const res = await api.auth.forgotPassword(email.trim());
         if (res.success) {
-          success('OTP Code Sent', 'Check your email for the 6-digit Brevo verification code.');
+          success('Verification Code Sent', 'Check your email for the 6-digit security code.');
           if (res.otpPreview) {
             setOtpDevNotice(`Verification Code: ${res.otpPreview}`);
           }
@@ -269,7 +270,7 @@ export const LoginSignup: React.FC = () => {
     if (mode === 'reset') {
       const fullOtp = otpDigits.join('');
       if (fullOtp.length !== 6) {
-        error('Incomplete OTP', 'Please enter the full 6-digit verification code.');
+        error('Incomplete Code', 'Please enter the full 6-digit verification code.');
         return;
       }
       if (!isPasswordLengthValid) {
@@ -298,36 +299,39 @@ export const LoginSignup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-3 sm:p-6 lg:p-8 font-sans">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xl overflow-hidden"
+        initial={{ opacity: 0, scale: 0.98, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xl overflow-hidden"
       >
         
-        {/* Left Form Section (7 cols) */}
-        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between">
+        {/* Left Form Section (7 cols on desktop, full width on mobile) */}
+        <div className="lg:col-span-7 p-5 sm:p-8 lg:p-10 flex flex-col justify-between">
           <div>
             
             {/* Top Brand Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
-                  <Compass className="w-6 h-6" />
-                </div>
+                <motion.div 
+                  whileHover={{ rotate: 15, scale: 1.05 }}
+                  className="w-10 sm:w-11 h-10 sm:h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 shrink-0"
+                >
+                  <Compass className="w-5 sm:w-6 h-5 sm:h-6" />
+                </motion.div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">GlobeTrotter</h2>
-                  <p className="text-[11px] font-semibold text-slate-400">Personalized Travel Experience</p>
+                  <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">GlobeTrotter</h2>
+                  <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400">Personalized Travel Experience</p>
                 </div>
               </div>
 
               {/* Mode Toggle Tabs */}
               {mode !== 'forgot' && mode !== 'reset' && (
-                <div className="flex rounded-2xl bg-slate-100 dark:bg-slate-800/80 p-1 text-xs font-bold">
+                <div className="flex rounded-2xl bg-slate-100 dark:bg-slate-800/80 p-1 text-xs font-bold self-start sm:self-auto">
                   <button
                     onClick={() => { setMode('login'); setTouched({}); }}
-                    className={`px-4 py-2 rounded-xl transition-all ${
+                    className={`relative px-4 py-1.5 sm:py-2 rounded-xl transition-all ${
                       mode === 'login'
                         ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm'
                         : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -337,7 +341,7 @@ export const LoginSignup: React.FC = () => {
                   </button>
                   <button
                     onClick={() => { setMode('signup'); setTouched({}); }}
-                    className={`px-4 py-2 rounded-xl transition-all ${
+                    className={`relative px-4 py-1.5 sm:py-2 rounded-xl transition-all ${
                       mode === 'signup'
                         ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm'
                         : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -350,7 +354,7 @@ export const LoginSignup: React.FC = () => {
             </div>
 
             {/* Title & Subtitle */}
-            <div className="mb-6">
+            <div className="mb-5 sm:mb-6">
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                 {mode === 'login' && 'Welcome Back'}
                 {mode === 'signup' && 'Create Your Travel Account'}
@@ -360,25 +364,25 @@ export const LoginSignup: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 {mode === 'login' && 'Sign in to access your custom itineraries, budgets, and saved journeys.'}
                 {mode === 'signup' && 'Choose your travel avatar, country, and contact details to get started.'}
-                {mode === 'forgot' && 'Enter your email to receive a 6-digit Brevo verification code.'}
+                {mode === 'forgot' && 'Enter your email to receive a 6-digit verification code.'}
                 {mode === 'reset' && 'Enter the 6-digit code sent to your email to verify and set a new password.'}
               </p>
             </div>
 
-            {/* OTP Notice Banner if triggered */}
+            {/* Verification Notice Banner if in Dev Mode */}
             {otpDevNotice && (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mb-5 p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 font-mono flex items-center gap-2.5 shadow-sm"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 p-3 sm:p-3.5 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 font-mono flex items-center gap-2.5 shadow-sm"
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span className="font-semibold">{otpDevNotice}</span>
               </motion.div>
             )}
 
-            {/* Main Form with Validations */}
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {/* Main Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4" noValidate>
               
               {/* Cartoon Profile Avatar Selector (Signup only) */}
               <AnimatePresence>
@@ -390,24 +394,26 @@ export const LoginSignup: React.FC = () => {
                     className="space-y-2 pb-1"
                   >
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Choose Cartoon Travel Avatar
+                      Choose Travel Avatar
                     </label>
                     
-                    <div className="grid grid-cols-6 gap-2 sm:gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5">
                       {CARTOON_AVATARS.map((avatar) => {
                         const isSelected = avatarUrl === avatar.url && !customAvatarUrl;
                         return (
-                          <button
+                          <motion.button
                             key={avatar.id}
                             type="button"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => {
                               setAvatarUrl(avatar.url);
                               setCustomAvatarUrl('');
                             }}
                             className={`relative aspect-square rounded-2xl p-1 border-2 transition-all group overflow-hidden ${
                               isSelected
-                                ? 'border-brand-500 ring-4 ring-brand-500/20 scale-105 bg-brand-50/50 dark:bg-brand-950/50 shadow-md'
-                                : 'border-slate-200 dark:border-slate-800 hover:border-brand-300 opacity-80 hover:opacity-100 hover:scale-102'
+                                ? 'border-brand-500 ring-4 ring-brand-500/20 bg-brand-50/50 dark:bg-brand-950/50 shadow-md'
+                                : 'border-slate-200 dark:border-slate-800 hover:border-brand-300 opacity-80 hover:opacity-100'
                             }`}
                             title={avatar.name}
                           >
@@ -421,7 +427,7 @@ export const LoginSignup: React.FC = () => {
                                 <Check className="w-2.5 h-2.5 stroke-[3]" />
                               </div>
                             )}
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -430,7 +436,7 @@ export const LoginSignup: React.FC = () => {
                       type="url"
                       value={customAvatarUrl}
                       onChange={(e) => setCustomAvatarUrl(e.target.value)}
-                      placeholder="Or paste custom cartoon avatar URL (optional)..."
+                      placeholder="Or paste custom avatar photo URL (optional)..."
                       className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                     />
                   </motion.div>
@@ -574,7 +580,7 @@ export const LoginSignup: React.FC = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="space-y-3 p-4 rounded-2xl bg-brand-50/50 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-900"
+                    className="space-y-3 p-3.5 sm:p-4 rounded-2xl bg-brand-50/50 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-900"
                   >
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
@@ -587,11 +593,11 @@ export const LoginSignup: React.FC = () => {
                         className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1"
                       >
                         <RefreshCw className={`w-3 h-3 ${resendCountdown > 0 ? 'animate-spin' : ''}`} />
-                        <span>{resendCountdown > 0 ? `Resend (${resendCountdown}s)` : 'Resend OTP'}</span>
+                        <span>{resendCountdown > 0 ? `Resend (${resendCountdown}s)` : 'Resend Code'}</span>
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 sm:gap-3" onPaste={handleOtpPaste}>
+                    <div className="flex items-center justify-between sm:justify-center gap-1.5 sm:gap-2.5" onPaste={handleOtpPaste}>
                       {otpDigits.map((digit, index) => (
                         <input
                           key={index}
@@ -602,7 +608,7 @@ export const LoginSignup: React.FC = () => {
                           value={digit}
                           onChange={(e) => handleOtpDigitChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                          className="w-10 sm:w-12 h-12 sm:h-14 text-center font-mono font-black text-lg sm:text-xl rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 focus:outline-none transition-all"
+                          className="w-10 sm:w-12 h-11 sm:h-13 text-center font-mono font-black text-lg sm:text-xl rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 focus:outline-none transition-all"
                         />
                       ))}
                     </div>
@@ -706,11 +712,13 @@ export const LoginSignup: React.FC = () => {
                 )}
               </AnimatePresence>
 
-              {/* Submit Button */}
-              <button
+              {/* Submit Button with Animated Micro-Interactions */}
+              <motion.button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-600 hover:to-sky-700 shadow-lg shadow-brand-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
+                className="w-full mt-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-brand-500 to-sky-600 hover:from-brand-600 hover:to-sky-700 shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -719,19 +727,19 @@ export const LoginSignup: React.FC = () => {
                     <span>
                       {mode === 'login' && 'Sign In to GlobeTrotter'}
                       {mode === 'signup' && 'Create Travel Account'}
-                      {mode === 'forgot' && 'Send Brevo OTP Code'}
+                      {mode === 'forgot' && 'Send Verification Code'}
                       {mode === 'reset' && 'Verify Code & Set Password'}
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
-              </button>
+              </motion.button>
 
               {(mode === 'forgot' || mode === 'reset') && (
                 <button
                   type="button"
                   onClick={() => { setMode('login'); setTouched({}); }}
-                  className="w-full text-center text-xs font-bold text-slate-500 hover:text-brand-600 transition-colors pt-2"
+                  className="w-full text-center text-xs font-bold text-slate-500 hover:text-brand-600 transition-colors pt-1"
                 >
                   &larr; Back to Sign In
                 </button>
@@ -740,14 +748,14 @@ export const LoginSignup: React.FC = () => {
 
           </div>
 
-          {/* Clean Minimalist Footer */}
+          {/* Clean Minimalist Footer without Emoji */}
           <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 text-center">
-            &copy; 2026 GlobeTrotter. Built with ❤️ for Odoo Hackathon.
+            &copy; 2026 GlobeTrotter. Built for Odoo Hackathon.
           </div>
 
         </div>
 
-        {/* Right Travel Visual Showcase (5 cols) */}
+        {/* Right Travel Visual Showcase (5 cols, hidden on small screens) */}
         <div className="hidden lg:flex lg:col-span-5 relative bg-gradient-to-br from-brand-600 via-sky-600 to-indigo-700 p-8 flex-col justify-between text-white overflow-hidden">
           
           <img

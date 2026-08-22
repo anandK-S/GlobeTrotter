@@ -34,7 +34,7 @@ export const CityCard: React.FC<CityCardProps> = ({
       const res = await api.destinations.toggleWishlist(destination.id);
       if (res.success) {
         setSaved(res.saved);
-        success(res.saved ? 'Saved to Wishlist! ❤️' : 'Removed from Wishlist', `${destination.name}, ${destination.country}`);
+        success(res.saved ? 'Saved to Wishlist' : 'Removed from Wishlist', `${destination.name}, ${destination.country}`);
       }
     } catch (err: any) {
       error('Error', err.message);

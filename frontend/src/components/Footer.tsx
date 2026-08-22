@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-slate-200/80 dark:border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} GlobeTrotter. Built with ❤️ for Odoo Hackathon.</p>
+          <p>&copy; {new Date().getFullYear()} GlobeTrotter. Built for Odoo Hackathon.</p>
           <div className="flex items-center gap-4">
             <span className="inline-flex items-center gap-1 text-slate-500">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
