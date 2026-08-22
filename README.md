@@ -29,9 +29,8 @@
 4. [Hybrid Authentication and Brevo Email Flow](#hybrid-authentication-and-brevo-email-flow)
 5. [Relational Database and Entity Relationship Model](#relational-database-and-entity-relationship-model)
 6. [Demo Accounts](#demo-accounts)
-7. [Supabase Setup](#supabase-setup)
-8. [Installation and Startup Guide](#installation-and-startup-guide)
-9. [REST API Endpoints Specification](#rest-api-endpoints-specification)
+7. [Installation and Startup Guide](#installation-and-startup-guide)
+8. [REST API Endpoints Specification](#rest-api-endpoints-specification)
 
 ---
 
@@ -255,20 +254,6 @@ erDiagram
 | **Administrator** | `admin@globetrotter.com` | `Admin@123` | Platform KPI telemetry, category expenditure charts, user governance directory |
 
 > **Tip**: On the Login screen (`/login`), click the **"Traveler User"** or **"Admin"** 1-click buttons to instantly populate credentials.
-
----
-
-## Supabase Setup
-
-GlobeTrotter provides complete PostgreSQL integration for Supabase Cloud:
-1. Create a free project at [supabase.com](https://supabase.com/).
-2. Open the **SQL Editor** and paste the contents of **`supabase/schema.sql`** (creates all tables, Row-Level Security policies, and sync triggers).
-3. In `frontend/.env`:
-   ```env
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-   ```
-4. The client will automatically activate Supabase Auth and Cloud database synchronization.
 
 ---
 
