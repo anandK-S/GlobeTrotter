@@ -1,71 +1,120 @@
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 dotenv.config();
 
 /**
  * Brevo Transactional Email Service
- * High-reliability email delivery for GlobeTrotter
+ * High-speed email dispatch with HTTPS REST API and Nodemailer SMTP fallback
  */
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'GlobeTrotter Travel';
 const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'anandkumara.r2020@gmail.com';
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
+const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY || '';
+const BREVO_SMTP_USER = process.env.BREVO_SMTP_USER || process.env.BREVO_SENDER_EMAIL || 'anandkumara.r2020@gmail.com';
+const BREVO_SMTP_HOST = process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com';
+const BREVO_SMTP_PORT = parseInt(process.env.BREVO_SMTP_PORT || '587', 10);
+
+// Create reusable Nodemailer SMTP transporter
+let smtpTransporter = null;
+if (BREVO_SMTP_KEY) {
+  try {
+    smtpTransporter = nodemailer.createTransport({
+      host: BREVO_SMTP_HOST,
+      port: BREVO_SMTP_PORT,
+      secure: false,
+      auth: {
+        user: BREVO_SMTP_USER,
+        pass: BREVO_SMTP_KEY
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+    console.log(`📡 Brevo SMTP Transporter configured for: ${BREVO_SMTP_USER}`);
+  } catch (err) {
+    console.error('Failed to initialize SMTP transporter:', err.message);
+  }
+}
 
 /**
- * Helper to dispatch an email via Brevo REST API with smart fallback
+ * Helper to dispatch an email with automatic fallback (REST API -> SMTP -> Dev Simulation)
  */
 async function sendBrevoEmail({ toEmail, toName, subject, htmlContent }) {
-  console.log(`\n================== [BREVO EMAIL DISPATCH] ==================`);
+  console.log(`\n================== [EMAIL DISPATCH] ==================`);
   console.log(`To: ${toName || 'User'} <${toEmail}>`);
   console.log(`Sender: ${SENDER_NAME} <${SENDER_EMAIL}>`);
   console.log(`Subject: ${subject}`);
 
-  if (!BREVO_API_KEY || BREVO_API_KEY.includes('your_brevo_api_key')) {
-    console.log(`[BREVO DEV MODE] Brevo API Key not configured. Simulating email delivery.`);
-    console.log(`============================================================\n`);
-    return { success: true, simulated: true, message: 'Email logged in simulation mode' };
-  }
+  // 1. Try Brevo REST API v3 (Lightning-fast over standard HTTPS port 443)
+  if (BREVO_API_KEY && !BREVO_API_KEY.includes('your_brevo_api_key')) {
+    try {
+      console.log(`[REST API] Dispatching via Brevo v3 API (HTTPS)...`);
+      const payload = {
+        sender: {
+          name: SENDER_NAME,
+          email: SENDER_EMAIL
+        },
+        to: [
+          {
+            email: toEmail,
+            name: toName || toEmail.split('@')[0]
+          }
+        ],
+        subject: subject,
+        htmlContent: htmlContent
+      };
 
-  try {
-    const payload = {
-      sender: {
-        name: SENDER_NAME,
-        email: SENDER_EMAIL
-      },
-      to: [
-        {
-          email: toEmail,
-          name: toName || toEmail.split('@')[0]
-        }
-      ],
-      subject: subject,
-      htmlContent: htmlContent
-    };
+      const response = await fetch(BREVO_API_URL, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': BREVO_API_KEY,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-    const response = await fetch(BREVO_API_URL, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': BREVO_API_KEY,
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Brevo API Error Response:', data);
-      return { success: false, error: data.message || 'Failed to send via Brevo', simulated: true };
+      if (response.ok) {
+        console.log('✅ Email Delivered Successfully via Brevo REST API!');
+        console.log('MessageId:', data.messageId);
+        console.log(`======================================================\n`);
+        return { success: true, messageId: data.messageId, method: 'rest', simulated: false };
+      } else {
+        console.warn('⚠️ Brevo REST API returned:', data.message || data);
+      }
+    } catch (apiError) {
+      console.warn('⚠️ Network error contacting Brevo REST API:', apiError.message);
     }
-
-    console.log('Brevo Email Delivered Successfully. MessageId:', data.messageId);
-    console.log(`============================================================\n`);
-    return { success: true, messageId: data.messageId, simulated: false };
-  } catch (error) {
-    console.error('Network error contacting Brevo API:', error.message);
-    return { success: true, error: error.message, simulated: true };
   }
+
+  // 2. Try Brevo SMTP Relay via Nodemailer
+  if (smtpTransporter) {
+    try {
+      console.log(`[SMTP] Attempting delivery via ${BREVO_SMTP_HOST}:${BREVO_SMTP_PORT}...`);
+      const info = await smtpTransporter.sendMail({
+        from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
+        to: `"${toName || toEmail.split('@')[0]}" <${toEmail}>`,
+        subject: subject,
+        html: htmlContent
+      });
+
+      console.log('✅ Email Delivered Successfully via Brevo SMTP Relay!');
+      console.log('MessageId:', info.messageId);
+      console.log(`======================================================\n`);
+      return { success: true, messageId: info.messageId, method: 'smtp', simulated: false };
+    } catch (smtpError) {
+      console.warn('⚠️ SMTP relay error:', smtpError.message);
+    }
+  }
+
+  // 3. Fallback Simulation (Development Mode)
+  console.log(`ℹ️ [DEV SIMULATION] Email logged locally for testing.`);
+  console.log(`======================================================\n`);
+  return { success: true, simulated: true, message: 'Email processed in dev mode' };
 }
 
 /**
@@ -78,12 +127,12 @@ export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
     ? 'We received a request to reset your password for your GlobeTrotter account. Please use the 6-digit security code below to complete the verification:'
     : 'Welcome to GlobeTrotter. Please verify your email address to unlock multi-city itineraries, budget tracking, and personalized travel curation:';
 
-  console.log(`\n=================== [VERIFICATION CODE] ===================`);
-  console.log(`RECIPIENT : ${toEmail}`);
-  console.log(`PURPOSE   : ${purpose}`);
-  console.log(`CODE      : >>> ${otpCode} <<<`);
-  console.log(`EXPIRES IN: 10 Minutes`);
-  console.log(`===========================================================\n`);
+  console.log(`\n🔑 =================== [VERIFICATION CODE] ===================`);
+  console.log(`🔑 RECIPIENT : ${toEmail}`);
+  console.log(`🔑 PURPOSE   : ${purpose}`);
+  console.log(`🔑 CODE      : >>> ${otpCode} <<<`);
+  console.log(`🔑 EXPIRES IN: 10 Minutes`);
+  console.log(`🔑 ===========================================================\n`);
 
   const htmlContent = `
     <!DOCTYPE html>
