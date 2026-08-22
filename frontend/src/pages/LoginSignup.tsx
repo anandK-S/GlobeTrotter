@@ -23,6 +23,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import { COUNTRIES, getCountryByName } from '../utils/countries';
+import { Logo } from '../components/Logo';
 
 // 6 Cartoon Travel Adventurer Avatars
 const CARTOON_AVATARS = [
@@ -313,18 +314,7 @@ export const LoginSignup: React.FC = () => {
             
             {/* Top Brand Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <motion.div 
-                  whileHover={{ rotate: 15, scale: 1.05 }}
-                  className="w-10 sm:w-11 h-10 sm:h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 shrink-0"
-                >
-                  <Compass className="w-5 sm:w-6 h-5 sm:h-6" />
-                </motion.div>
-                <div>
-                  <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">GlobeTrotter</h2>
-                  <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400">Personalized Travel Experience</p>
-                </div>
-              </div>
+              <Logo size="md" />
 
               {/* Mode Toggle Tabs */}
               {mode !== 'forgot' && mode !== 'reset' && (

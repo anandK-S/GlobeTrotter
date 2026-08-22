@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { Logo } from './Logo';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -49,18 +50,8 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shadow-md shadow-brand-500/25 group-hover:scale-105 transition-transform duration-200">
-              <Compass className="w-6 h-6 animate-pulse-slow" />
-            </div>
-            <div>
-              <span className="text-xl font-extrabold bg-gradient-to-r from-brand-600 via-sky-500 to-indigo-600 bg-clip-text text-transparent tracking-tight">
-                GlobeTrotter
-              </span>
-              <span className="hidden sm:inline-block ml-1.5 text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800">
-                Odoo
-              </span>
-            </div>
+          <Link to="/">
+            <Logo size="md" />
           </Link>
 
           {/* Desktop Navigation Links */}

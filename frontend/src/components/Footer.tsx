@@ -1,6 +1,7 @@
 import React from 'react';
-import { Compass, Heart, Globe, Shield, Sparkles } from 'lucide-react';
+import { Heart, Globe, Shield, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Logo } from './Logo';
 
 export const Footer: React.FC = () => {
   return (
@@ -10,14 +11,7 @@ export const Footer: React.FC = () => {
           
           {/* Brand Col */}
           <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shadow-sm">
-                <Compass className="w-5 h-5" />
-              </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
-                GlobeTrotter
-              </span>
-            </div>
+            <Logo size="sm" showBadge={false} />
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Empowering personalized travel planning with multi-destination itineraries, automatic budget tracking, and real-time interactive maps.
             </p>

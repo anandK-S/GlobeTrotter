@@ -21,15 +21,13 @@ import { SharedItinerary } from './pages/SharedItinerary';
 import { UserProfile } from './pages/UserProfile';
 import { AdminDashboard } from './pages/AdminDashboard';
 
+import { LoadingScreen } from './components/LoadingScreen';
+
 // Protected Route Guard
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <LoadingScreen message="Verifying session and loading your travel dashboard..." />;
   }
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
@@ -38,11 +36,7 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   if (isLoading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <LoadingScreen message="Accessing admin analytics console..." />;
   }
   return isAuthenticated && isAdmin ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };

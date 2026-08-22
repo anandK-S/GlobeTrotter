@@ -2,13 +2,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Brevo (Sendinblue) Transactional Email Service
- * Uses Brevo v3 REST API (https://api.brevo.com/v3/smtp/email)
+ * Brevo Transactional Email Service
+ * High-reliability email delivery for GlobeTrotter
  */
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'GlobeTrotter Travel';
-const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'support@globetrotter.travel';
+const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'anandkumara.r2020@gmail.com';
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
 
 /**
@@ -17,10 +17,11 @@ const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
 async function sendBrevoEmail({ toEmail, toName, subject, htmlContent }) {
   console.log(`\n================== [BREVO EMAIL DISPATCH] ==================`);
   console.log(`To: ${toName || 'User'} <${toEmail}>`);
+  console.log(`Sender: ${SENDER_NAME} <${SENDER_EMAIL}>`);
   console.log(`Subject: ${subject}`);
 
   if (!BREVO_API_KEY || BREVO_API_KEY.includes('your_brevo_api_key')) {
-    console.log(`ℹ️ [BREVO DEV MODE] Brevo API Key not configured. Simulating email delivery successfully.`);
+    console.log(`[BREVO DEV MODE] Brevo API Key not configured. Simulating email delivery.`);
     console.log(`============================================================\n`);
     return { success: true, simulated: true, message: 'Email logged in simulation mode' };
   }
@@ -54,78 +55,86 @@ async function sendBrevoEmail({ toEmail, toName, subject, htmlContent }) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('❌ Brevo API Error:', data);
+      console.error('Brevo API Error Response:', data);
       return { success: false, error: data.message || 'Failed to send via Brevo', simulated: true };
     }
 
-    console.log('✅ Brevo Email Sent Successfully. MessageId:', data.messageId);
+    console.log('Brevo Email Delivered Successfully. MessageId:', data.messageId);
     console.log(`============================================================\n`);
     return { success: true, messageId: data.messageId, simulated: false };
   } catch (error) {
-    console.error('❌ Network error contacting Brevo API:', error.message);
+    console.error('Network error contacting Brevo API:', error.message);
     return { success: true, error: error.message, simulated: true };
   }
 }
 
 /**
- * Send 6-Digit OTP Email (For signup verification or forgot password)
+ * Send 6-Digit Verification Code Email
  */
 export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
   const isForgotPassword = purpose === 'forgot_password';
-  const actionTitle = isForgotPassword ? 'Password Reset Verification' : 'Verify Your GlobeTrotter Account';
+  const actionTitle = isForgotPassword ? 'Password Reset Verification' : 'Email Account Verification';
   const description = isForgotPassword
-    ? 'We received a request to reset your password. Use the verification code below to proceed:'
-    : 'Welcome to GlobeTrotter! Please verify your email address to unlock personalized multi-city trip planning:';
+    ? 'We received a request to reset your password for your GlobeTrotter account. Please use the 6-digit security code below to complete the verification:'
+    : 'Welcome to GlobeTrotter. Please verify your email address to unlock multi-city itineraries, budget tracking, and personalized travel curation:';
 
-  console.log(`\n🔑 =================== [OTP CODE] ===================`);
-  console.log(`🔑 RECIPIENT : ${toEmail}`);
-  console.log(`🔑 PURPOSE   : ${purpose}`);
-  console.log(`🔑 OTP CODE  : >>> ${otpCode} <<<`);
-  console.log(`🔑 EXPIRES IN: 10 Minutes`);
-  console.log(`🔑 ====================================================\n`);
+  console.log(`\n=================== [VERIFICATION CODE] ===================`);
+  console.log(`RECIPIENT : ${toEmail}`);
+  console.log(`PURPOSE   : ${purpose}`);
+  console.log(`CODE      : >>> ${otpCode} <<<`);
+  console.log(`EXPIRES IN: 10 Minutes`);
+  console.log(`===========================================================\n`);
 
   const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #1e293b; }
-        .container { max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .header { background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #6366f1 100%); padding: 32px 24px; text-align: center; color: #ffffff; }
-        .header h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-        .header p { margin: 6px 0 0 0; opacity: 0.9; font-size: 14px; }
-        .content { padding: 32px 28px; text-align: center; }
-        .greeting { font-size: 18px; font-weight: 600; margin-bottom: 12px; text-align: left; }
-        .desc { font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 24px; text-align: left; }
-        .otp-box { background: #f0fdf4; border: 2px dashed #22c55e; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center; }
-        .otp-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #16a34a; font-weight: 700; margin-bottom: 8px; }
-        .otp-digits { font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #0f172a; font-family: monospace; }
-        .footer-note { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-top: 24px; }
-        .footer { background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #0f172a; }
+        .wrapper { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
+        .header { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 36px 32px; text-align: center; color: #ffffff; }
+        .brand-badge { display: inline-block; background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px); padding: 4px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { margin: 6px 0 0 0; opacity: 0.9; font-size: 13px; }
+        .content { padding: 36px 32px; text-align: center; }
+        .greeting { font-size: 18px; font-weight: 700; margin-bottom: 12px; text-align: left; color: #0f172a; }
+        .desc { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 28px; text-align: left; }
+        .otp-container { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px 20px; margin: 24px 0; text-align: center; }
+        .otp-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #0284c7; font-weight: 800; margin-bottom: 8px; }
+        .otp-digits { font-size: 40px; font-weight: 900; letter-spacing: 10px; color: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .security-badge { display: inline-block; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; margin-top: 16px; }
+        .footer-note { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-top: 28px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+        .footer { background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px 32px; text-align: center; font-size: 11px; color: #94a3b8; }
       </style>
     </head>
     <body>
-      <div class="container">
+      <div class="wrapper">
         <div class="header">
-          <h1>🌍 GlobeTrotter</h1>
-          <p>Empowering Personalized Travel Planning</p>
+          <div class="brand-badge">GlobeTrotter Travel</div>
+          <h1>${actionTitle}</h1>
+          <p>Personalized Multi-City Travel Planning</p>
         </div>
         <div class="content">
           <div class="greeting">Hello ${toName || 'Traveler'},</div>
           <div class="desc">${description}</div>
           
-          <div class="otp-box">
-            <div class="otp-label">Your 6-Digit Verification Code</div>
+          <div class="otp-container">
+            <div class="otp-label">6-Digit Verification Code</div>
             <div class="otp-digits">${otpCode}</div>
           </div>
 
+          <div>
+            <span class="security-badge">Valid for 10 Minutes</span>
+          </div>
+
           <p class="footer-note">
-            ⚠️ This code is valid for <strong>10 minutes</strong>. If you did not request this verification, you can safely ignore this email.
+            If you did not request this security code, please ignore this email or update your account credentials.
           </p>
         </div>
         <div class="footer">
-          &copy; ${new Date().getFullYear()} GlobeTrotter Inc. Crafted for Odoo Hackathon.
+          &copy; ${new Date().getFullYear()} GlobeTrotter. Built for Odoo Hackathon.
         </div>
       </div>
     </body>
@@ -135,7 +144,7 @@ export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
   return sendBrevoEmail({
     toEmail,
     toName,
-    subject: `[GlobeTrotter] ${actionTitle} - ${otpCode}`,
+    subject: `[GlobeTrotter] ${actionTitle}: ${otpCode}`,
     htmlContent
   });
 }
@@ -149,53 +158,50 @@ export async function sendWelcomeEmail({ toEmail, toName }) {
     <html>
     <head>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #1e293b; }
-        .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .header { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); padding: 36px 24px; text-align: center; color: #ffffff; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-        .content { padding: 32px 28px; }
-        .title { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
-        .text { font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 20px; }
-        .feature-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; display: flex; align-items: center; }
-        .feature-icon { font-size: 24px; margin-right: 12px; }
-        .feature-text { font-size: 14px; color: #334155; }
-        .feature-title { font-weight: 600; color: #0f172a; }
-        .btn-container { text-align: center; margin: 28px 0 16px; }
-        .btn { background: #0ea5e9; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; }
-        .footer { background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #0f172a; }
+        .wrapper { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
+        .header { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 36px 32px; text-align: center; color: #ffffff; }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 800; }
+        .content { padding: 36px 32px; }
+        .title { font-size: 19px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+        .text { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 20px; }
+        .feature-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+        .feature-title { font-weight: 700; color: #0f172a; font-size: 13px; margin-bottom: 2px; }
+        .feature-desc { font-size: 12px; color: #64748b; }
+        .footer { background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px 32px; text-align: center; font-size: 11px; color: #94a3b8; }
       </style>
     </head>
     <body>
-      <div class="container">
+      <div class="wrapper">
         <div class="header">
-          <h1>✈️ Welcome to GlobeTrotter!</h1>
+          <h1>Welcome to GlobeTrotter</h1>
+          <p>Your Intelligent Multi-City Travel Hub</p>
         </div>
         <div class="content">
-          <div class="title">Hey ${toName || 'Travel Explorer'}, welcome aboard! 🎒</div>
+          <div class="title">Welcome, ${toName || 'Traveler'}!</div>
           <p class="text">
-            Your travel planning journey just got an upgrade. With GlobeTrotter, designing multi-city vacations, tracking budgets, and visualizing your daily itineraries is effortless.
+            Your GlobeTrotter account is ready. You can now build multi-destination itineraries, visualize interactive flight routes on Leaflet maps, and forecast travel budgets with real-time analytics.
           </p>
 
           <div class="feature-card">
-            <span class="feature-icon">🗺️</span>
-            <div class="feature-text"><span class="feature-title">Multi-City Itinerary Builder:</span> Drag, drop, and arrange stops with automatic day calculations.</div>
-          </div>
-          <div class="feature-card">
-            <span class="feature-icon">💰</span>
-            <div class="feature-text"><span class="feature-title">Real-Time Budget Analytics:</span> Track stay, transport, food, and activity costs with visual charts.</div>
-          </div>
-          <div class="feature-card">
-            <span class="feature-icon">🔗</span>
-            <div class="feature-text"><span class="feature-title">Collaborative Sharing:</span> Share public links that fellow travelers can view or fork.</div>
+            <div class="feature-title">Multi-City Route Builder</div>
+            <div class="feature-desc">Connect multiple global destinations with flights, trains, and curated daily agendas.</div>
           </div>
 
-          <div class="btn-container">
-            <a href="http://localhost:5173/dashboard" class="btn">Start Planning Your First Trip &rarr;</a>
+          <div class="feature-card">
+            <div class="feature-title">Real-Time Financial Telemetry</div>
+            <div class="feature-desc">Interactive category charts and stop-by-stop cost breakdown ledgers.</div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-title">Public Sharing & 1-Click Fork</div>
+            <div class="feature-desc">Share unique URLs with fellow travelers and clone public itineraries to your space.</div>
           </div>
         </div>
         <div class="footer">
-          &copy; ${new Date().getFullYear()} GlobeTrotter Inc. • Happy Traveling!
+          &copy; ${new Date().getFullYear()} GlobeTrotter. Built for Odoo Hackathon.
         </div>
       </div>
     </body>
@@ -205,7 +211,7 @@ export async function sendWelcomeEmail({ toEmail, toName }) {
   return sendBrevoEmail({
     toEmail,
     toName,
-    subject: `🌍 Welcome to GlobeTrotter, ${toName || 'Explorer'}! Start Planning Your Journey`,
+    subject: `Welcome to GlobeTrotter, ${toName || 'Traveler'}`,
     htmlContent
   });
 }
