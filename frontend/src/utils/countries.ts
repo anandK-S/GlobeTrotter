@@ -34,6 +34,11 @@ export function getCountryByName(name: string): CountryInfo {
   return COUNTRIES.find(c => c.name.toLowerCase() === name.toLowerCase()) || COUNTRIES[0];
 }
 
+export function getMaxPhoneLength(countryName: string): number {
+  const country = getCountryByName(countryName);
+  return Math.max(...country.phoneLengths);
+}
+
 export function validatePhoneNumber(phone: string, countryName: string): { isValid: boolean; message: string } {
   const cleanDigits = phone.replace(/[^0-9]/g, '');
   const country = getCountryByName(countryName);

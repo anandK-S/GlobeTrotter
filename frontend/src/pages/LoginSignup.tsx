@@ -22,7 +22,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
-import { COUNTRIES, getCountryByName, validatePhoneNumber } from '../utils/countries';
+import { COUNTRIES, getCountryByName, validatePhoneNumber, getMaxPhoneLength } from '../utils/countries';
 import { Logo } from '../components/Logo';
 
 // 6 Cartoon Travel Adventurer Avatars (DiceBear Vector Set)
@@ -39,13 +39,6 @@ export const LoginSignup: React.FC = () => {
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'reset' | 'verify_signup'>(initialMode);
-  
-  // Sync mode whenever URL search parameters change
-  useEffect(() => {
-    const qMode = searchParams.get('mode');
-    if (qMode === 'signup') setMode('signup');
-    else if (qMode === 'login') setMode('login');
-  }, [searchParams]);
 
   // Form states
   const [name, setName] = useState('');
@@ -78,6 +71,46 @@ export const LoginSignup: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // Handle 1-Click Verification Links from Email or URL Parameters
+  useEffect(() => {
+    const qCode = searchParams.get('code');
+    const qEmail = searchParams.get('email');
+    const qMode = searchParams.get('mode');
+
+    if (qEmail) {
+      setEmail(qEmail);
+    }
+
+    if (qCode && qCode.length === 6) {
+      const digits = qCode.split('');
+      setOtpDigits(digits);
+
+      if (qMode === 'verify_signup') {
+        setMode('verify_signup');
+        // Auto-verify email upon clicking email link!
+        if (qEmail) {
+          setIsSubmitting(true);
+          verifySignupOtp(qEmail.trim().toLowerCase(), qCode).then((ok) => {
+            setIsSubmitting(false);
+            if (ok) {
+              navigate('/dashboard');
+            }
+          });
+        }
+      } else if (qMode === 'reset') {
+        setMode('reset');
+      }
+    } else if (qMode === 'signup') {
+      setMode('signup');
+    } else if (qMode === 'login') {
+      setMode('login');
+    } else if (qMode === 'forgot') {
+      setMode('forgot');
+    } else if (qMode === 'verify_signup') {
+      setMode('verify_signup');
+    }
+  }, [searchParams]);
+
   // Resend Timer Countdown
   useEffect(() => {
     let timer: any;
@@ -89,13 +122,15 @@ export const LoginSignup: React.FC = () => {
     return () => clearInterval(timer);
   }, [resendCountdown]);
 
-  // Handle Country Selection
+  // Handle Country Selection with phone length adjustment
   const handleCountryChange = (countryName: string) => {
     setSelectedCountry(countryName);
     const countryInfo = getCountryByName(countryName);
     if (countryInfo) {
       setPhoneCode(countryInfo.dialCode);
       setHomeCurrency(countryInfo.currency);
+      const maxLen = Math.max(...countryInfo.phoneLengths);
+      setPhoneNumber(prev => prev.slice(0, maxLen));
     }
   };
 
@@ -476,7 +511,7 @@ export const LoginSignup: React.FC = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         onBlur={() => setTouched({ ...touched, name: true })}
-                        placeholder="Alex Rivers"
+                        placeholder="Enter your full name"
                         className={`w-full pl-9 pr-9 py-2.5 rounded-xl border text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 transition-all ${
                           touched.name && !isNameValid
                             ? 'border-rose-500 focus:ring-rose-500/30'
@@ -539,7 +574,7 @@ export const LoginSignup: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Phone Number with strict Country Rule */}
+                    {/* Phone Number with strict Country Rule & Max Digits */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -555,8 +590,9 @@ export const LoginSignup: React.FC = () => {
                         </span>
                         <input
                           type="tel"
+                          maxLength={getMaxPhoneLength(selectedCountry)}
                           value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, getMaxPhoneLength(selectedCountry)))}
                           onBlur={() => setTouched({ ...touched, phone: true })}
                           placeholder={currentCountryInfo.placeholder}
                           className="w-full px-3 py-2.5 text-xs sm:text-sm bg-transparent focus:outline-none"
@@ -596,7 +632,7 @@ export const LoginSignup: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       onBlur={() => setTouched({ ...touched, email: true })}
-                      placeholder="alex.rivers@gmail.com"
+                      placeholder="name@example.com"
                       className={`w-full pl-9 pr-9 py-2.5 rounded-xl border text-xs sm:text-sm bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-2 transition-all ${
                         touched.email && !isEmailValid
                           ? 'border-rose-500 focus:ring-rose-500/30'

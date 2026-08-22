@@ -22,7 +22,7 @@ import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import { Destination, Currency } from '../types';
 import { CityCard } from '../components/CityCard';
-import { COUNTRIES, getCountryByName } from '../utils/countries';
+import { COUNTRIES, getCountryByName, getMaxPhoneLength, validatePhoneNumber } from '../utils/countries';
 
 const ALL_PREFERENCE_TAGS = [
   'Foodie',
@@ -274,9 +274,10 @@ export const UserProfile: React.FC = () => {
                   </span>
                   <input
                     type="tel"
+                    maxLength={getMaxPhoneLength(country)}
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="9876543210"
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, getMaxPhoneLength(country)))}
+                    placeholder={getCountryByName(country).placeholder}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>

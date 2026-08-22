@@ -15,6 +15,7 @@ const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY || '';
 const BREVO_SMTP_USER = process.env.BREVO_SMTP_USER || process.env.BREVO_SENDER_EMAIL || 'anandkumara.r2020@gmail.com';
 const BREVO_SMTP_HOST = process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com';
 const BREVO_SMTP_PORT = parseInt(process.env.BREVO_SMTP_PORT || '587', 10);
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Create reusable Nodemailer SMTP transporter
 let smtpTransporter = null;
@@ -118,19 +119,24 @@ async function sendBrevoEmail({ toEmail, toName, subject, htmlContent }) {
 }
 
 /**
- * Send 6-Digit Verification Code Email
+ * Send 6-Digit Verification Code Email with 1-Click Verification Link
  */
 export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
   const isForgotPassword = purpose === 'forgot_password';
   const actionTitle = isForgotPassword ? 'Password Reset Verification' : 'Email Account Verification';
   const description = isForgotPassword
-    ? 'We received a request to reset your password for your GlobeTrotter account. Please use the 6-digit security code below to complete the verification:'
-    : 'Welcome to GlobeTrotter. Please verify your email address to unlock multi-city itineraries, budget tracking, and personalized travel curation:';
+    ? 'We received a request to reset your password for your GlobeTrotter account. Click the button below to automatically verify and set your new password, or use the 6-digit code:'
+    : 'Welcome to GlobeTrotter. Click the button below to instantly verify your email address and activate your account:';
+
+  const verifyUrl = isForgotPassword
+    ? `${CLIENT_URL}/login?mode=reset&email=${encodeURIComponent(toEmail)}&code=${otpCode}`
+    : `${CLIENT_URL}/login?mode=verify_signup&email=${encodeURIComponent(toEmail)}&code=${otpCode}`;
 
   console.log(`\n🔑 =================== [VERIFICATION CODE] ===================`);
   console.log(`🔑 RECIPIENT : ${toEmail}`);
   console.log(`🔑 PURPOSE   : ${purpose}`);
   console.log(`🔑 CODE      : >>> ${otpCode} <<<`);
+  console.log(`🔑 LINK      : ${verifyUrl}`);
   console.log(`🔑 EXPIRES IN: 10 Minutes`);
   console.log(`🔑 ===========================================================\n`);
 
@@ -149,12 +155,15 @@ export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
         .header p { margin: 6px 0 0 0; opacity: 0.9; font-size: 13px; }
         .content { padding: 36px 32px; text-align: center; }
         .greeting { font-size: 18px; font-weight: 700; margin-bottom: 12px; text-align: left; color: #0f172a; }
-        .desc { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 28px; text-align: left; }
-        .otp-container { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px 20px; margin: 24px 0; text-align: center; }
-        .otp-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #0284c7; font-weight: 800; margin-bottom: 8px; }
-        .otp-digits { font-size: 40px; font-weight: 900; letter-spacing: 10px; color: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-        .security-badge { display: inline-block; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; margin-top: 16px; }
-        .footer-note { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-top: 28px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+        .desc { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 24px; text-align: left; }
+        .btn-action { display: inline-block; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff !important; text-decoration: none; padding: 15px 36px; border-radius: 12px; font-weight: 800; font-size: 15px; box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35); margin: 8px 0 24px 0; }
+        .divider { border-top: 1px solid #e2e8f0; margin: 24px 0; position: relative; }
+        .divider-text { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #ffffff; padding: 0 12px; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .otp-container { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin: 16px 0; text-align: center; }
+        .otp-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #0284c7; font-weight: 800; margin-bottom: 6px; }
+        .otp-digits { font-size: 36px; font-weight: 900; letter-spacing: 10px; color: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .security-badge { display: inline-block; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; margin-top: 12px; }
+        .footer-note { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-top: 24px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; }
         .footer { background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px 32px; text-align: center; font-size: 11px; color: #94a3b8; }
       </style>
     </head>
@@ -169,8 +178,19 @@ export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
           <div class="greeting">Hello ${toName || 'Traveler'},</div>
           <div class="desc">${description}</div>
           
+          <!-- 1-Click Verification CTA -->
+          <div>
+            <a href="${verifyUrl}" target="_blank" class="btn-action">
+              ${isForgotPassword ? 'Reset Password Directly' : 'Verify Email & Activate Account'}
+            </a>
+          </div>
+
+          <div class="divider">
+            <span class="divider-text">Or Use Verification Code</span>
+          </div>
+
           <div class="otp-container">
-            <div class="otp-label">6-Digit Verification Code</div>
+            <div class="otp-label">6-Digit Security Code</div>
             <div class="otp-digits">${otpCode}</div>
           </div>
 
@@ -179,7 +199,7 @@ export async function sendOtpEmail({ toEmail, toName, otpCode, purpose }) {
           </div>
 
           <p class="footer-note">
-            If you did not request this security code, please ignore this email or update your account credentials.
+            If you did not request this verification, please ignore this email or update your account credentials.
           </p>
         </div>
         <div class="footer">
