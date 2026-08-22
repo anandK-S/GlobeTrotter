@@ -94,6 +94,7 @@ export interface Trip {
   metrics?: TripMetrics;
   creator_name?: string;
   creator_avatar?: string;
+  creator_country?: string;
 }
 
 export interface MasterActivity {

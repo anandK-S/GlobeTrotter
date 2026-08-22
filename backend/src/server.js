@@ -50,6 +50,7 @@ app.delete('/api/auth/account', authenticateToken, authController.deleteAccount)
 
 // ================= TRIPS & ITINERARY ROUTES =================
 app.get('/api/trips', authenticateToken, tripController.getMyTrips);
+app.get('/api/trips/community/feed', tripController.getCommunityTrips);
 app.post('/api/trips', authenticateToken, tripController.createTrip);
 app.get('/api/trips/share/:slug', optionalAuth, tripController.getPublicTrip);
 app.get('/api/trips/:id', optionalAuth, tripController.getTripById);

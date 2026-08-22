@@ -226,8 +226,14 @@ export const LoginSignup: React.FC = () => {
       }
       setIsSubmitting(true);
       try {
-        const ok = await login(email.trim(), password);
-        if (ok) navigate('/dashboard');
+        const loggedUser = await login(email.trim(), password);
+        if (loggedUser) {
+          if (loggedUser.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        }
       } finally {
         setIsSubmitting(false);
       }

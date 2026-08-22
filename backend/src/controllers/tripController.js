@@ -600,3 +600,56 @@ export async function deleteActivity(req, res) {
     return res.status(500).json({ success: false, message: 'Server error deleting activity.' });
   }
 }
+
+/**
+ * Get Community Public Trips Feed
+ */
+export async function getCommunityTrips(req, res) {
+  try {
+    const db = await getDb();
+    const trips = await db.all(`
+      SELECT 
+        t.*,
+        u.name as creator_name,
+        u.avatar_url as creator_avatar,
+        u.country as creator_country,
+        COUNT(DISTINCT s.id) as stop_count,
+        COALESCE(SUM(s.transport_cost + s.stay_cost), 0) as stops_total_cost,
+        (
+          SELECT COALESCE(SUM(a.cost), 0)
+          FROM stop_activities a
+          JOIN trip_stops ts ON ts.id = a.stop_id
+          WHERE ts.trip_id = t.id
+        ) as activities_total_cost
+      FROM trips t
+      JOIN users u ON u.id = t.user_id
+      LEFT JOIN trip_stops s ON s.trip_id = t.id
+      WHERE t.is_public = 1
+      GROUP BY t.id
+      ORDER BY t.created_at DESC
+      LIMIT 50
+    `);
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const formattedTrips = trips.map(trip => {
+      const calculatedCost = (trip.stops_total_cost || 0) + (trip.activities_total_cost || 0);
+      let status = 'upcoming';
+      if (trip.end_date < todayStr) status = 'completed';
+      else if (trip.start_date <= todayStr && trip.end_date >= todayStr) status = 'ongoing';
+
+      return {
+        ...trip,
+        is_public: true,
+        status,
+        calculated_total_cost: calculatedCost,
+        stop_count: trip.stop_count || 0
+      };
+    });
+
+    return res.json({ success: true, trips: formattedTrips });
+  } catch (error) {
+    console.error('Error fetching community trips:', error);
+    return res.status(500).json({ success: false, message: 'Server error retrieving community trips' });
+  }
+}

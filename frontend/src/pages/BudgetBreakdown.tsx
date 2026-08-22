@@ -17,6 +17,7 @@ import { Trip } from '../types';
 import { api } from '../services/api';
 import { BudgetCharts } from '../components/BudgetCharts';
 import { useToast } from '../context/ToastContext';
+import { formatCurrency } from '../utils/formatters';
 
 export const BudgetBreakdown: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -146,16 +147,16 @@ export const BudgetBreakdown: React.FC = () => {
                       {stop.transport_mode}
                     </td>
                     <td className="py-3.5 font-mono text-slate-800 dark:text-slate-200">
-                      ${stop.transport_cost || 0}
+                      {formatCurrency(stop.transport_cost || 0, trip.currency)}
                     </td>
                     <td className="py-3.5 font-mono text-slate-800 dark:text-slate-200">
-                      ${stop.stay_cost || 0}
+                      {formatCurrency(stop.stay_cost || 0, trip.currency)}
                     </td>
                     <td className="py-3.5 font-mono text-slate-800 dark:text-slate-200">
-                      ${activitiesCost} ({stop.activities?.length || 0} items)
+                      {formatCurrency(activitiesCost, trip.currency)} ({stop.activities?.length || 0} items)
                     </td>
                     <td className="py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                      ${stopSubtotal}
+                      {formatCurrency(stopSubtotal, trip.currency)}
                     </td>
                   </tr>
                 );
@@ -164,11 +165,11 @@ export const BudgetBreakdown: React.FC = () => {
             <tfoot>
               <tr className="border-t-2 border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-slate-100 text-sm">
                 <td className="pt-4" colSpan={2}>Grand Cumulative Total</td>
-                <td className="pt-4 font-mono">${metrics.total_transport_cost}</td>
-                <td className="pt-4 font-mono">${metrics.total_stay_cost}</td>
-                <td className="pt-4 font-mono">${metrics.total_activities_cost}</td>
+                <td className="pt-4 font-mono">{formatCurrency(metrics.total_transport_cost, trip.currency)}</td>
+                <td className="pt-4 font-mono">{formatCurrency(metrics.total_stay_cost, trip.currency)}</td>
+                <td className="pt-4 font-mono">{formatCurrency(metrics.total_activities_cost, trip.currency)}</td>
                 <td className="pt-4 font-mono text-base text-brand-600 dark:text-brand-400">
-                  ${metrics.total_estimated_cost}
+                  {formatCurrency(metrics.total_estimated_cost, trip.currency)}
                 </td>
               </tr>
             </tfoot>

@@ -17,8 +17,10 @@ import { ActivityCard } from '../components/ActivityCard';
 import { Modal } from '../components/Modal';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import { formatCurrency, getCurrencySymbol } from '../utils/formatters';
 
 export const ActivitySearch: React.FC = () => {
+  const { user } = useAuth();
   const [activities, setActivities] = useState<MasterActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -212,7 +214,7 @@ export const ActivitySearch: React.FC = () => {
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}
               >
-                {val === undefined ? 'Any' : `<$${val}`}
+                {val === undefined ? 'Any' : `<${getCurrencySymbol(user?.home_currency || 'INR').trim()}${val}`}
               </button>
             ))}
           </div>
@@ -239,30 +241,28 @@ export const ActivitySearch: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 space-y-3">
-          <Tag className="w-10 h-10 text-slate-400 mx-auto" />
-          <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">No Activities Found</h3>
-          <p className="text-xs text-slate-500">Try adjusting your filters or search keyword.</p>
+        <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 space-y-3">
+          <Sparkles className="w-8 h-8 text-brand-500 mx-auto" />
+          <h3 className="font-bold text-slate-800 dark:text-slate-200">No matching activities found</h3>
+          <p className="text-xs text-slate-500">Try changing your search keywords or category filters.</p>
         </div>
       )}
 
-      {/* Add To Stop Modal */}
+      {/* MODAL: ADD TO TRIP */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={`Add Experience to Itinerary`}
-        subtitle={selectedAct?.title || ''}
+        title={`Add "${selectedAct?.title}" to Trip`}
+        subtitle="Schedule this experience into one of your existing itinerary stops."
       >
         {userTrips.length > 0 ? (
           <form onSubmit={handleConfirmAddActivity} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Select Target Trip
-              </label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Select Trip *</label>
               <select
                 value={selectedTripId}
                 onChange={(e) => handleTripChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-xs"
               >
                 {userTrips.map(t => (
                   <option key={t.id} value={t.id}>{t.title}</option>
@@ -271,25 +271,23 @@ export const ActivitySearch: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Select Destination Stop
-              </label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Select Stop / City *</label>
               <select
                 value={selectedStopId}
                 onChange={(e) => setSelectedStopId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-xs"
               >
                 {userTrips.find(t => t.id === selectedTripId)?.stops?.map((s, idx) => (
                   <option key={s.id} value={s.id}>
                     Stop #{idx + 1}: {s.city_name}, {s.country}
                   </option>
-                )) || <option value="">-- Choose Stop --</option>}
+                )) || <option value="">No stops in this trip yet (Add stops in Builder)</option>}
               </select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Schedule Day #</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Day #</label>
                 <input
                   type="number"
                   min="1"
@@ -310,7 +308,7 @@ export const ActivitySearch: React.FC = () => {
             </div>
 
             <div className="p-3.5 rounded-2xl bg-brand-50 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/60 text-xs text-brand-800 dark:text-brand-300">
-              <span className="font-bold">Cost: ${selectedAct?.cost || 0} &bull; Duration: {selectedAct?.duration_hours}h</span>
+              <span className="font-bold">Cost: {formatCurrency(selectedAct?.cost || 0, user?.home_currency || 'INR')} &bull; Duration: {selectedAct?.duration_hours}h</span>
             </div>
 
             <button

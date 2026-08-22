@@ -1,6 +1,8 @@
 import React from 'react';
 import { MasterActivity, StopActivity } from '../types';
 import { Clock, DollarSign, Star, Tag, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/formatters';
 
 interface ActivityCardProps {
   activity: MasterActivity | StopActivity;
@@ -15,6 +17,8 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({
   onRemove,
   isStopActivity = false
 }) => {
+  const { user } = useAuth();
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Food': return 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
@@ -47,7 +51,7 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({
 
         {/* Cost Badge */}
         <div className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-white font-bold text-xs flex items-center gap-0.5 shadow-sm">
-          <span>{activity.cost === 0 ? 'Free' : `$${activity.cost}`}</span>
+          <span>{activity.cost === 0 ? 'Free' : formatCurrency(activity.cost, user?.home_currency || 'INR')}</span>
         </div>
       </div>
 

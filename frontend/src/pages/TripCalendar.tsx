@@ -15,6 +15,7 @@ import {
 import { Trip, TripStop, StopActivity } from '../types';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { formatCurrency } from '../utils/formatters';
 
 export const TripCalendar: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -169,7 +170,7 @@ export const TripCalendar: React.FC = () => {
                         {activity.category}
                       </span>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        {activity.cost === 0 ? 'Free' : `$${activity.cost}`}
+                        {activity.cost === 0 ? 'Free' : formatCurrency(activity.cost, trip.currency)}
                       </span>
                     </div>
                   </div>

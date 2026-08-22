@@ -19,6 +19,7 @@ import { api } from '../services/api';
 import { MapView } from '../components/MapView';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { formatCurrency } from '../utils/formatters';
 
 export const SharedItinerary: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -188,7 +189,7 @@ export const SharedItinerary: React.FC = () => {
               </span>
               <span className="flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-emerald-400" />
-                Est. Budget: ${trip.total_budget.toLocaleString()} {trip.currency}
+                Est. Budget: {formatCurrency(trip.total_budget, trip.currency)}
               </span>
             </div>
           </div>

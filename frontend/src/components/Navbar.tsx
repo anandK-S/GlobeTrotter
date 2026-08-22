@@ -14,7 +14,8 @@ import {
   Menu, 
   X, 
   Sparkles,
-  Heart
+  Heart,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -39,6 +40,7 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Compass },
     { name: 'My Trips', path: '/my-trips', icon: Calendar },
+    { name: 'Community', path: '/community', icon: Users },
     { name: 'Explore Cities', path: '/explore-cities', icon: MapPin },
     { name: 'Activities', path: '/activities', icon: Search },
     { name: 'Wishlist', path: '/profile?tab=wishlist', icon: Heart },

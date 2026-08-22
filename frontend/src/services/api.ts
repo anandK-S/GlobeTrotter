@@ -78,6 +78,7 @@ export const api = {
   // Trips
   trips: {
     getMyTrips: () => request<{ success: boolean; trips: Trip[] }>('/trips'),
+    getCommunityFeed: () => request<{ success: boolean; trips: Trip[] }>('/trips/community/feed'),
     getTripById: (id: string) => request<{ success: boolean; trip: Trip }>(`/trips/${id}`),
     createTrip: (body: any) => request<{ success: boolean; tripId: string; shareSlug: string; message: string }>('/trips', {
       method: 'POST',

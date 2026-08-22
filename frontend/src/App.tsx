@@ -20,6 +20,7 @@ import { TripCalendar } from './pages/TripCalendar';
 import { SharedItinerary } from './pages/SharedItinerary';
 import { UserProfile } from './pages/UserProfile';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { CommunityFeed } from './pages/CommunityFeed';
 
 import { LoadingScreen } from './components/LoadingScreen';
 
@@ -41,6 +42,15 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return isAuthenticated && isAdmin ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
 
+// Home Redirect Guard
+const HomeRoute: React.FC = () => {
+  const { user } = useAuth();
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+  return <Dashboard />;
+};
+
 export const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
 
@@ -58,10 +68,11 @@ export const AppContent: React.FC = () => {
           <Route path="/share/:slug" element={<SharedItinerary />} />
 
           {/* Protected Traveler Routes */}
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/" element={<PrivateRoute><HomeRoute /></PrivateRoute>} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/create-trip" element={<PrivateRoute><CreateTrip /></PrivateRoute>} />
           <Route path="/my-trips" element={<PrivateRoute><MyTrips /></PrivateRoute>} />
+          <Route path="/community" element={<PrivateRoute><CommunityFeed /></PrivateRoute>} />
           <Route path="/itinerary/:id" element={<PrivateRoute><ItineraryView /></PrivateRoute>} />
           <Route path="/itinerary/:id/builder" element={<PrivateRoute><ItineraryBuilder /></PrivateRoute>} />
           <Route path="/itinerary/:id/budget" element={<PrivateRoute><BudgetBreakdown /></PrivateRoute>} />

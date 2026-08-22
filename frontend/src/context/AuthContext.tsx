@@ -21,7 +21,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<User | null>;
   register: (params: RegisterParams) => Promise<{ success: boolean; requiresVerification?: boolean; email?: string }>;
   verifySignupOtp: (email: string, otpCode: string) => Promise<boolean>;
   logout: () => void;
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchCurrentUser();
   }, [token]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     setIsLoading(true);
     try {
       const res = await api.auth.login({ email, password });
@@ -71,12 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.token);
         setUser(res.user);
         success(`Welcome back, ${res.user.name}`, 'Successfully logged into your travel space.');
-        return true;
+        return res.user;
       }
-      return false;
+      return null;
     } catch (err: any) {
       error('Login Failed', err.message || 'Invalid email or password');
-      return false;
+      return null;
     } finally {
       setIsLoading(false);
     }

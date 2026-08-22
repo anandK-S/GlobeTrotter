@@ -17,13 +17,14 @@ import { AdminAnalyticsData, User } from '../types';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/formatters';
 
 export const AdminDashboard: React.FC = () => {
   const [data, setData] = useState<AdminAnalyticsData | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { success, error } = useToast();
 
   const fetchAdminData = async () => {
@@ -136,7 +137,9 @@ export const AdminDashboard: React.FC = () => {
 
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Planned Budget</p>
-          <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 mt-1">${kpis.totalBudget.toLocaleString()}</p>
+          <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 mt-1">
+            {formatCurrency(kpis.totalBudget, user?.home_currency || 'INR')}
+          </p>
           <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">Budget volume</p>
         </div>
 
@@ -197,7 +200,7 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-slate-500">{cat.count} activities assigned</p>
                 </div>
                 <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                  ${cat.total_spent.toLocaleString()} spent
+                  {formatCurrency(cat.total_spent, user?.home_currency || 'INR')} spent
                 </span>
               </div>
             ))}
