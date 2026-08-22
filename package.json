@@ -1,0 +1,15 @@
+{
+  "name": "odoo-globetrotter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GlobeTrotter - Empowering Personalized Travel Planning (Odoo Hackathon)",
+  "scripts": {
+    "start": "cd backend && npm run start",
+    "dev:backend": "cd backend && npm run start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "seed": "cd backend && npm run seed"
+  },
+  "keywords": ["travel", "itinerary-builder", "odoo-hackathon", "react", "express", "sqlite", "leaflet", "chartjs", "brevo"],
+  "author": "GlobeTrotter Team",
+  "license": "MIT"
+}
