@@ -1,6 +1,6 @@
-# 🗺️ GlobeTrotter - Comprehensive Process Flowcharts & Architecture Maps
+# GlobeTrotter - Comprehensive Process Flowcharts & Architecture Maps
 
-This document contains detailed visual flowcharts for all core processes in the **GlobeTrotter** travel planning application.
+This document contains detailed visual flowcharts for all core processes in the GlobeTrotter travel planning application.
 
 ---
 

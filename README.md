@@ -1,30 +1,30 @@
-# 🌍 GlobeTrotter - Empowering Personalized Travel Planning
+# GlobeTrotter - Empowering Personalized Travel Planning
 
 > **Odoo Hackathon Implementation & Architecture Blueprint**  
 > GlobeTrotter is an end-to-end, multi-city travel planning platform designed to make trip design intuitive, collaborative, and visually captivating. Meeting and exceeding all 13 core requirements outlined in the Odoo Hackathon specification.
 
 ---
 
-## 🌟 Hackathon Winning Pillars
+## Hackathon Winning Pillars
 
-### 1. 🎨 Visuals & UI Polish (Top Evaluation Criterion)
+### 1. Visuals & UI Polish (Top Evaluation Criterion)
 * **Design System**: Modern, clean travel UI with Tailwind CSS, Lucide icons, glassmorphism cards, vibrant destination banners, micro-animations (Framer Motion), dark/light mode toggle.
 * **Interactive Map**: OpenStreetMap Leaflet integration with interactive city markers, animated travel route polyline connectors, and activity pins.
 * **Dynamic Charts**: Chart.js / Recharts for budget breakdown (Doughnut chart by category: Stay, Transport, Food, Activities) and daily spending trend.
 * **Draggable Timelines & Builders**: Drag-to-reorder itinerary stops, day-by-day scheduling, and expandable activity cards.
 
-### 2. 🔐 Authentication, Validation & Security
+### 2. Authentication, Validation & Security
 * **Authentication**: JWT-based session auth, user registration, login, "Forgot Password" OTP flow via **Brevo Email API**, password strength meter, remember-me persistence.
 * **Form Verification & Validation**: Strict input schema validation (email formatting, date logic [`end_date >= start_date`, stops within trip range], positive budget values, required fields) with inline error highlights.
 * **Role-Based Access**: Traveler access vs Admin/Analytics dashboard.
 * **Route Guards**: Protected routes (`/dashboard`, `/my-trips`, `/create-trip`, `/itinerary/:id`, `/profile`, `/admin`) with seamless redirect to `/login`.
 
-### 3. 🗄️ Relational Database Architecture
+### 3. Relational Database Architecture
 Proper relational model with foreign keys, cascading deletes, and aggregate queries across `users`, `trips`, `trip_stops`, `stop_activities`, `destinations_master`, and `saved_wishlist`.
 
 ---
 
-## 🗺️ System Flowcharts & User Journeys
+## System Flowcharts & User Journeys
 
 ### 1. End-to-End User Journey Flowchart
 ```mermaid
@@ -93,7 +93,7 @@ flowchart TD
 
 ---
 
-## 🗄️ Relational Database Schema (ERD)
+## Relational Database Schema (ERD)
 
 ```mermaid
 erDiagram
@@ -185,7 +185,7 @@ erDiagram
 
 ---
 
-## 📱 13 Specification Screens Mapping
+## 13 Specification Screens Mapping
 
 | Screen # | Screen Name | Key Features & Visual Enhancements |
 |---|---|---|
@@ -205,7 +205,7 @@ erDiagram
 
 ---
 
-## 🏗️ Repository Architecture
+## Repository Architecture
 
 ```
 odoo-GlobeTrotter/
@@ -236,7 +236,7 @@ odoo-GlobeTrotter/
 
 ---
 
-## 🚀 Setup & Execution Guide
+## Setup & Execution Guide
 
 ### 1. Requirements
 * **Node.js**: v18+
@@ -255,8 +255,10 @@ npm run install:all
 npm run dev
 ```
 
-### 3. Environment Variables (`backend/.env`)
-```env
+### 3. Environment Variables Configuration
+To set up environment variables locally, copy `backend/.env.example` to `backend/.env` (Note: `.env` is gitignored and must not be committed to source control).
+
+```
 PORT=5000
 JWT_SECRET=globetrotter_secret_jwt_key_2026
 BREVO_API_KEY=your_brevo_api_key_here
@@ -266,7 +268,7 @@ SENDER_NAME=GlobeTrotter Travel
 
 ---
 
-## 🛠️ API Reference Summary
+## API Reference Summary
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
@@ -283,5 +285,5 @@ SENDER_NAME=GlobeTrotter Travel
 
 ---
 
-## 📄 License
-Licensed under the MIT License. Built with ❤️ for the Odoo Hackathon.
+## License
+Licensed under the MIT License. Built for the Odoo Hackathon.
