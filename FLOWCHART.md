@@ -1,6 +1,6 @@
-# GlobeTrotter - Comprehensive Process Flowcharts & Architecture Maps
+# GlobeTrotter - Process Flowcharts & Architectural Diagrams
 
-This document contains detailed visual flowcharts for all core processes in the GlobeTrotter travel planning application.
+This document outlines the system architecture, sequence workflows, and data processing logic for the GlobeTrotter travel planning platform.
 
 ---
 
@@ -59,7 +59,7 @@ graph TD
 
 ---
 
-## 2. Authentication & Brevo Transactional Email OTP Flow
+## 2. Authentication & Transactional Email Workflow
 
 ```mermaid
 sequenceDiagram
@@ -70,103 +70,103 @@ sequenceDiagram
     participant DB as SQLite DB
     participant Brevo as Brevo Email API
 
-    Note over User, Brevo: Registration & Welcome Email Flow
-    User->>App: Submits Sign Up Form (Name, Email, Password)
+    Note over User, Brevo: User Registration Sequence
+    User->>App: Submits Registration Credentials
     App->>API: POST /api/auth/register
-    API->>DB: Hash password & INSERT into users
-    API->>Brevo: Send Transactional Welcome Email
-    Brevo-->>User: Delivers Welcome Email
+    API->>DB: Hash password & store user record
+    API->>Brevo: Trigger Welcome Email Payload
+    Brevo-->>User: Delivers Welcome Confirmation
     API-->>App: Return JWT Token & User Profile
-    App-->>User: Redirect to Dashboard
+    App-->>User: Navigate to User Dashboard
 
-    Note over User, Brevo: Forgot Password OTP Flow
-    User->>App: Clicks "Forgot Password" & Enters Email
+    Note over User, Brevo: Password Reset OTP Sequence
+    User->>App: Submits Password Reset Request
     App->>API: POST /api/auth/forgot-password
-    API->>DB: Generate 6-digit OTP & store with 10-min expiry
-    API->>Brevo: Trigger OTP Email Payload
-    Brevo-->>User: Email with 6-digit Security OTP
-    User->>App: Enters OTP & New Password in Modal
+    API->>DB: Store 6-digit OTP with timestamp limit
+    API->>Brevo: Dispatch Transactional Email Payload
+    Brevo-->>User: Email containing OTP Code
+    User->>App: Submits OTP & New Password
     App->>API: POST /api/auth/verify-otp
-    API->>DB: Verify OTP & update password_hash
-    API-->>App: Password Updated Successfully
-    App-->>User: Toast Notification & Prompt Login
+    API->>DB: Validate OTP & update password hash
+    API-->>App: Return Confirmation Response
+    App-->>User: Prompt User Authentication
 ```
 
 ---
 
-## 3. Multi-City Trip Creation & Itinerary Building Flow
+## 3. Multi-City Trip Construction Workflow
 
 ```mermaid
 flowchart TD
-    Start([User clicks 'Plan New Trip']) --> Step1[Enter Trip Name, Start & End Dates, Total Budget]
+    Start([User Selects 'Plan New Trip']) --> Step1[Enter Title, Date Range & Budget]
     Step1 --> ValidateDates{Is End Date >= Start Date?}
-    ValidateDates -- No --> DateError[Display Error: Invalid Date Range] --> Step1
-    ValidateDates -- Yes --> SelectCover[Choose Destination Cover Photo]
-    SelectCover --> CreateTrip[POST /api/trips - Save Trip Record]
+    ValidateDates -- No --> DateError[Return Validation Error] --> Step1
+    ValidateDates -- Yes --> SelectCover[Assign Cover Photo]
+    SelectCover --> CreateTrip[POST /api/trips - Create Trip Instance]
     
     CreateTrip --> Builder[Navigate to Itinerary Builder]
-    Builder --> AddStop[Click 'Add City Stop']
-    AddStop --> SearchCity[Search City Autocomplete from Master Destinations]
-    SearchCity --> SetDuration[Set Arrival Date, Departure Date & Stay Cost]
+    Builder --> AddStop[Add City Stop]
+    AddStop --> SearchCity[Query Master Destinations Catalog]
+    SearchCity --> SetDuration[Configure Arrival, Departure & Accommodation Cost]
     SetDuration --> SaveStop[POST /api/trips/:id/stops]
     
-    SaveStop --> ReorderStops[Drag-and-Drop to Reorder City Sequence]
-    ReorderStops --> AddActivity[Click 'Add Activity' to Stop]
-    AddActivity --> CatalogSearch[Filter Activities by Vibe: Sightseeing/Food/Adventure]
-    CatalogSearch --> SelectActivity[Select Activity, Cost, Duration & Time]
+    SaveStop --> ReorderStops[Reorder Sequence via Drag-and-Drop]
+    ReorderStops --> AddActivity[Add Activity to Stop]
+    AddActivity --> CatalogSearch[Filter Activities by Category]
+    CatalogSearch --> SelectActivity[Specify Activity Details & Cost]
     SelectActivity --> SaveActivity[POST /api/trips/:id/activities]
     
-    SaveActivity --> Recalc[Recalculate Cumulative Cost = Sum of Stays + Activities]
-    Recalc --> BudgetCheck{Cumulative Cost > Total Budget?}
-    BudgetCheck -- Yes --> OverBudget[Show Red Warning Badge & Doughnut Alert]
-    BudgetCheck -- No --> NormalBudget[Show Green On-Track Badge]
+    SaveActivity --> Recalc[Compute Cumulative Expense]
+    Recalc --> BudgetCheck{Expense > Allocated Budget?}
+    BudgetCheck -- Yes --> OverBudget[Display Over-Budget Indicator]
+    BudgetCheck -- No --> NormalBudget[Display Within-Budget Indicator]
     
-    OverBudget & NormalBudget --> FinalView[Render Interactive Day-by-Day List & Leaflet Map]
+    OverBudget & NormalBudget --> FinalView[Render Itinerary & Route Map]
 ```
 
 ---
 
-## 4. Public Trip Sharing & Forking Flow
+## 4. Public Itinerary Sharing & Duplication Flow
 
 ```mermaid
 flowchart LR
-    Owner[Trip Owner] -->|Clicks 'Share Trip'| GenerateSlug[Generate Unique Share Slug]
-    GenerateSlug --> UpdateDB[SET is_public = true, share_slug = uuid]
-    UpdateDB --> CopyLink[Copy URL: /share/:slug]
+    Owner[Trip Owner] -->|Selects Share Option| GenerateSlug[Generate Unique Identifier]
+    GenerateSlug --> UpdateDB[Update Record Public Status]
+    UpdateDB --> CopyLink[Generate Public Link]
     
-    CopyLink -->|Share via WhatsApp/Twitter/Direct| Friend[Friend / Visitor]
-    Friend --> OpenURL[Access /share/:slug in Browser]
-    OpenURL --> PublicView[Render Read-Only Public Itinerary Screen]
+    CopyLink -->|Distribution| Visitor[External User]
+    Visitor --> OpenURL[Access Public Route]
+    OpenURL --> PublicView[Render Read-Only Itinerary]
     
-    PublicView --> ForkBtn[Click 'Fork / Copy Trip to My Account']
-    ForkBtn --> CheckAuth{Is Visitor Logged In?}
-    CheckAuth -- No --> RedirectLogin[Redirect to /login with Return URL]
+    PublicView --> ForkBtn[Select Clone Itinerary Option]
+    ForkBtn --> CheckAuth{Is Visitor Authenticated?}
+    CheckAuth -- No --> RedirectLogin[Redirect to Login Route]
     CheckAuth -- Yes --> API_Fork[POST /api/trips/:id/duplicate]
     
-    API_Fork --> CloneTrip[Deep Clone Trip, Stops & Activities in SQLite]
-    CloneTrip --> SuccessToast[Toast: 'Trip duplicated to your account!']
-    SuccessToast --> MyTrips[Redirect to My Trips Screen]
+    API_Fork --> CloneTrip[Duplicate Trip, Stops & Activities]
+    CloneTrip --> SuccessToast[Display Confirmation]
+    SuccessToast --> MyTrips[Redirect to User Trip Collection]
 ```
 
 ---
 
-## 5. Admin Analytics & User Control Flow
+## 5. Administrative Analytics & Account Management Flow
 
 ```mermaid
 flowchart TD
-    AdminUser([Admin User]) --> Login[Login with Admin Credentials]
-    Login --> VerifyRole{Is Role == 'admin'?}
-    VerifyRole -- No --> Deny[Access Denied - Redirect to /dashboard]
-    VerifyRole -- Yes --> AdminDashboard[Access /admin Dashboard Screen]
+    AdminUser([Admin User]) --> Login[Authenticate Credentials]
+    Login --> VerifyRole{Is Account Role Admin?}
+    VerifyRole -- No --> Deny[Access Denied - Redirect to Dashboard]
+    VerifyRole -- Yes --> AdminDashboard[Access Administration Panel]
     
-    AdminDashboard --> MetricCards[Fetch Platform KPIs: Total Users, Total Trips, Cumulative Budget]
-    AdminDashboard --> Charts[Render Platform Growth & Popular Destinations Charts]
-    AdminDashboard --> UserTable[Render Interactive Users Table]
+    AdminDashboard --> MetricCards[Query Platform Key Metrics]
+    AdminDashboard --> Charts[Render Platform Usage Visualizations]
+    AdminDashboard --> UserTable[Render User Management Data]
     
-    UserTable --> SearchUser[Filter / Search User by Name or Email]
-    UserTable --> ToggleStatus[Toggle User Active Status / Elevation]
-    UserTable --> DeleteUser[Delete Inactive User Account]
+    UserTable --> SearchUser[Filter Accounts by Identifier]
+    UserTable --> ToggleStatus[Modify Account Status]
+    UserTable --> DeleteUser[Remove Account]
     
     ToggleStatus & DeleteUser --> API_AdminAction[POST /api/admin/users/action]
-    API_AdminAction --> UpdateDB[(Update SQLite DB)]
+    API_AdminAction --> UpdateDB[(Update Database State)]
 ```

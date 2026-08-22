@@ -1,32 +1,31 @@
-# GlobeTrotter - Empowering Personalized Travel Planning
+# GlobeTrotter - Multi-City Travel Planning Platform
 
-> **Odoo Hackathon Implementation & Architecture Blueprint**  
-> GlobeTrotter is an end-to-end, multi-city travel planning platform designed to make trip design intuitive, collaborative, and visually captivating. Meeting and exceeding all 13 core requirements outlined in the Odoo Hackathon specification.
+GlobeTrotter is an end-to-end, multi-city travel planning application built for intuitive, collaborative, and structured trip management. The platform satisfies all core requirements specified in the Odoo Hackathon guidelines.
 
 ---
 
-## Hackathon Winning Pillars
+## Core Pillars & Features
 
-### 1. Visuals & UI Polish (Top Evaluation Criterion)
-* **Design System**: Modern, clean travel UI with Tailwind CSS, Lucide icons, glassmorphism cards, vibrant destination banners, micro-animations (Framer Motion), dark/light mode toggle.
-* **Interactive Map**: OpenStreetMap Leaflet integration with interactive city markers, animated travel route polyline connectors, and activity pins.
-* **Dynamic Charts**: Chart.js / Recharts for budget breakdown (Doughnut chart by category: Stay, Transport, Food, Activities) and daily spending trend.
-* **Draggable Timelines & Builders**: Drag-to-reorder itinerary stops, day-by-day scheduling, and expandable activity cards.
+### 1. Visual Design & User Interface
+* **Design System**: Responsive travel interface utilizing Tailwind CSS, Lucide icons, glassmorphism containers, structured destination layouts, dark and light theme options, and smooth UI transitions.
+* **Interactive Map**: Integration of Leaflet OpenStreetMap with custom city markers, dynamic route polyline connectors, and activity geographic points.
+* **Data Visualization**: Chart.js integration for visual budget distribution (category breakdown via doughnut chart) and daily expense tracking.
+* **Interactive Timelines**: Reorderable itinerary stops, structured day-by-day scheduling, and collapsible activity details.
 
-### 2. Authentication, Validation & Security
-* **Authentication**: JWT-based session auth, user registration, login, "Forgot Password" OTP flow via **Brevo Email API**, password strength meter, remember-me persistence.
-* **Form Verification & Validation**: Strict input schema validation (email formatting, date logic [`end_date >= start_date`, stops within trip range], positive budget values, required fields) with inline error highlights.
-* **Role-Based Access**: Traveler access vs Admin/Analytics dashboard.
-* **Route Guards**: Protected routes (`/dashboard`, `/my-trips`, `/create-trip`, `/itinerary/:id`, `/profile`, `/admin`) with seamless redirect to `/login`.
+### 2. Authentication, Input Validation & Security
+* **Session & Identity Management**: JWT-based session state, registration, login, remember-me persistence, and a password reset workflow utilizing the Brevo Email API for transactional OTP generation.
+* **Data Validation**: Client and server-side validation rules covering email syntax, date range integrity (end date must be greater than or equal to start date), positive budget amounts, and mandatory fields.
+* **Access Control**: Role-based routing distinguishing standard travelers from administrative users.
+* **Route Protection**: Protected navigation guards for user dashboards, trip management, itinerary creation, profile configuration, and administrative panels.
 
 ### 3. Relational Database Architecture
-Proper relational model with foreign keys, cascading deletes, and aggregate queries across `users`, `trips`, `trip_stops`, `stop_activities`, `destinations_master`, and `saved_wishlist`.
+Structured relational storage using SQLite with primary/foreign key constraints, cascade operations, and aggregate queries across `users`, `trips`, `trip_stops`, `stop_activities`, `destinations_master`, and `saved_wishlist`.
 
 ---
 
-## System Flowcharts & User Journeys
+## System Architecture & Data Flow
 
-### 1. End-to-End User Journey Flowchart
+### 1. End-to-End User Flow
 ```mermaid
 flowchart TD
     A[Visitor] --> B{Has Account?}
@@ -60,7 +59,7 @@ flowchart TD
     V --> K
 ```
 
-### 2. Authentication & Brevo OTP Flowchart
+### 2. Password Reset OTP Flow
 ```mermaid
 flowchart LR
     A[User Requests Password Reset] --> B[POST /api/auth/forgot-password]
@@ -71,7 +70,7 @@ flowchart LR
     F --> G[User Enters OTP in App]
     G --> H[POST /api/auth/verify-otp]
     H -- Valid --> I[Allow Password Reset]
-    H -- Invalid/Expired --> J[Display Error Toast]
+    H -- Invalid/Expired --> J[Display Error Notification]
 ```
 
 ### 3. Multi-City Trip Building Logic
@@ -93,7 +92,7 @@ flowchart TD
 
 ---
 
-## Relational Database Schema (ERD)
+## Entity Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -185,78 +184,78 @@ erDiagram
 
 ---
 
-## 13 Specification Screens Mapping
+## Application Screen Mapping
 
-| Screen # | Screen Name | Key Features & Visual Enhancements |
+| Screen ID | Screen Name | Key Features |
 |---|---|---|
-| **1** | **Login / Signup** | Split-screen visual, email/password validation, password strength indicator, remember me, Brevo OTP email modal. |
-| **2** | **Dashboard / Home** | Personalized greeting with avatar, KPI summary cards (Total Trips, Countries Visited, Upcoming Trips), quick trip carousel, trending spots. |
-| **3** | **Create Trip** | Multi-step form with Unsplash cover image selector, auto duration calculation, budget input validation (`end_date >= start_date`). |
-| **4** | **My Trips** | Filter tabs (All, Upcoming, Ongoing, Completed), search bar, Grid/List view toggle, progress bar, quick actions (View, Edit, Duplicate, Share, Delete). |
-| **5** | **Itinerary Builder** | Drag-to-reorder cities, city search autocomplete, automatic date allocation per stop, activity assignment per stop. |
-| **6** | **Itinerary View** | Dual view toggle (Interactive Day-wise List & Leaflet Route Map), weather forecast widget, cost pills, PDF export trigger. |
-| **7** | **City Search & Explore** | Global city discovery directory with search bar, continent filters, budget indicators ($, $$, $$$), popularity rating, quick "Add to Trip". |
-| **8** | **Activity Search & Catalog** | Vibe filters (Sightseeing, Culinary, Adventure, Culture, Nightlife), duration filters, price tags, detailed drawer modal, instant assignment. |
-| **9** | **Trip Budget & Cost Breakdown** | Category breakdown Doughnut chart, daily expenditure Bar chart, over-budget warning badges, currency switcher (USD, EUR, INR, GBP). |
-| **10** | **Trip Calendar & Timeline** | Interactive calendar (Monthly/Weekly/Daily) and vertical timeline view showing activities scheduled at specific times. |
-| **11** | **Shared / Public Itinerary** | Clean read-only presentation page accessible via public slug, interactive map, summary stats, "Fork / Copy Trip to My Account" CTA button. |
-| **12** | **User Profile & Settings** | Editable details (name, email, avatar, bio), travel preferences checkboxes, home currency selector, saved wishlist destination cards. |
-| **13** | **Admin / Analytics Dashboard** | Admin control center: Platform KPIs (Total Registered Users, Total Trips Created, Cumulative Budget), engagement charts, interactive user management table. |
+| 1 | Login / Signup | Split-screen authentication layout, password validation meter, remember-me persistence, Brevo OTP email recovery modal. |
+| 2 | Dashboard / Home | User greeting, overview key performance indicators, recent trip carousel, curated destination discovery. |
+| 3 | Create Trip | Form setup, cover photo selection, duration computation, date and budget validation. |
+| 4 | My Trips | Filter tabs (All, Upcoming, Ongoing, Completed), search input, grid/list view toggle, progress status, trip management actions. |
+| 5 | Itinerary Builder | Drag-and-drop city reordering, location search autocomplete, date distribution, activity assignment. |
+| 6 | Itinerary View | Toggleable day-wise schedule and interactive route map, weather preview widget, cost allocation tags, document export trigger. |
+| 7 | City Search & Explore | Global destination directory, filter controls (region, budget level, popularity rating), quick trip addition actions. |
+| 8 | Activity Catalog | Category filters (Sightseeing, Culinary, Adventure, Culture, Nightlife), duration filters, pricing data, activity drawer detail modal. |
+| 9 | Budget Manager | Category breakdown doughnut chart, daily expense bar chart, budget threshold indicators, multi-currency support (USD, EUR, INR, GBP). |
+| 10 | Calendar & Timeline | Interactive calendar (Monthly/Weekly/Daily) and structured time-slot itinerary breakdown. |
+| 11 | Shared Itinerary | Read-only presentation screen for public URLs, interactive route map, statistics summary, trip cloning CTA. |
+| 12 | User Profile & Settings | Account profile editing, travel preference options, default currency selection, saved wishlist collection. |
+| 13 | Admin Analytics | Administrative overview metrics (Total Users, Total Trips, Platform Budget Aggregate), growth visualizations, user account administration table. |
 
 ---
 
-## Repository Architecture
+## Project Structure
 
 ```
-odoo-GlobeTrotter/
-├── backend/                  # Node.js + Express + SQLite API
+GlobeTrotter/
+├── backend/                  # Express REST API Server
 │   ├── src/
-│   │   ├── config/           # Database setup & migrations
-│   │   ├── controllers/      # Auth, Trips, Stops, Activities, Analytics controllers
-│   │   ├── middleware/       # JWT Auth & validation middleware
-│   │   ├── services/         # Brevo Transactional Email Service
-│   │   ├── seed/             # Seed data (25+ destinations, 100+ activities)
-│   │   └── server.js         # API entry point (port 5000)
+│   │   ├── config/           # Database configuration
+│   │   ├── controllers/      # Route handler logic
+│   │   ├── middleware/       # JWT and validation middleware
+│   │   ├── services/         # Brevo email integration
+│   │   ├── seed/             # Seed data initialization
+│   │   └── server.js         # Backend entry point
 │   ├── .env.example
 │   └── package.json
 │
-├── frontend/                 # React 18 + Vite + TypeScript + Tailwind CSS
+├── frontend/                 # React 18 + Vite + TypeScript Application
 │   ├── src/
-│   │   ├── components/       # Leaflet MapView, BudgetCharts, Navbar, Cards
-│   │   ├── context/          # AuthContext, ThemeContext
-│   │   ├── pages/            # All 13 specification screens
-│   │   ├── services/         # API Client
-│   │   ├── types/            # Relational TS types
-│   │   └── App.tsx           # Route guards & router
+│   │   ├── components/       # UI components (Map, Charts, Navigation)
+│   │   ├── context/          # State management (Auth, Theme)
+│   │   ├── pages/            # 13 Screen views
+│   │   ├── services/         # HTTP API client
+│   │   ├── types/            # TypeScript interfaces
+│   │   └── App.tsx           # Application router and protected routes
 │   ├── tailwind.config.js
 │   └── package.json
-├── FLOWCHART.md              # Detailed workflow diagrams
-└── README.md                 # Project documentation
+├── FLOWCHART.md              # Workflow and architectural documentation
+└── README.md                 # Technical project documentation
 ```
 
 ---
 
-## Setup & Execution Guide
+## Setup and Installation
 
-### 1. Requirements
-* **Node.js**: v18+
-* **npm**: v9+
+### Prerequisites
+* Node.js v18 or higher
+* npm v9 or higher
 
-### 2. Quick Start (Single Command)
+### Installation
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/Nirjala7-11/GlobeTrotter.git
 cd GlobeTrotter
 
-# Install all dependencies (Root, Backend, Frontend)
+# Install all dependencies across root, backend, and frontend
 npm run install:all
 
-# Start both Backend (Port 5000) & Frontend (Port 5173) concurrently
+# Launch backend and frontend development servers concurrently
 npm run dev
 ```
 
-### 3. Environment Variables Configuration
-To set up environment variables locally, copy `backend/.env.example` to `backend/.env` (Note: `.env` is gitignored and must not be committed to source control).
+### Environment Configuration
+Copy `backend/.env.example` to `backend/.env` to configure local variables.
 
 ```
 PORT=5000
@@ -268,22 +267,22 @@ SENDER_NAME=GlobeTrotter Travel
 
 ---
 
-## API Reference Summary
+## API Endpoint Overview
 
-| Method | Endpoint | Description | Auth Required |
+| Method | Endpoint | Functionality | Authentication |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Register new user & send Brevo welcome email | No |
-| `POST` | `/api/auth/login` | User login & issue JWT | No |
-| `POST` | `/api/auth/forgot-password` | Generate & send Brevo OTP email | No |
-| `POST` | `/api/auth/verify-otp` | Verify 6-digit OTP code | No |
-| `GET` | `/api/trips` | Get current user's trips | Yes |
-| `POST` | `/api/trips` | Create new multi-city trip | Yes |
-| `GET` | `/api/trips/share/:slug` | Get public shared itinerary | No |
-| `POST` | `/api/trips/:id/duplicate` | Fork / Copy trip to user account | Yes |
-| `GET` | `/api/destinations` | Get master destinations catalog | No |
-| `GET` | `/api/admin/analytics` | Get platform KPIs & user management data | Admin |
+| `POST` | `/api/auth/register` | User registration and transactional welcome email | Public |
+| `POST` | `/api/auth/login` | Authentication and JWT issuance | Public |
+| `POST` | `/api/auth/forgot-password` | Password recovery OTP email generation | Public |
+| `POST` | `/api/auth/verify-otp` | OTP code verification | Public |
+| `GET` | `/api/trips` | Retrieve current user trips | Required |
+| `POST` | `/api/trips` | Create new multi-city trip record | Required |
+| `GET` | `/api/trips/share/:slug` | Retrieve public shared itinerary | Public |
+| `POST` | `/api/trips/:id/duplicate` | Clone existing trip into user account | Required |
+| `GET` | `/api/destinations` | Retrieve master destination catalog | Public |
+| `GET` | `/api/admin/analytics` | Retrieve administrative platform metrics | Admin Only |
 
 ---
 
 ## License
-Licensed under the MIT License. Built for the Odoo Hackathon.
+Distributed under the MIT License. Developed for the Odoo Hackathon.
