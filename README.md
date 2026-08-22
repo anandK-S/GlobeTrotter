@@ -1,10 +1,10 @@
 <div align="center">
 
-# GlobeTrotter - Personalized Multi-City Travel Planning Platform
+# GlobeTrotter - Intelligent Multi-City Travel Planning Platform
 
-### Built for the Odoo Hackathon 2026
+### Official Submission for the Odoo Hackathon 2026
 
-*An intelligent, full-stack multi-city travel planning platform featuring custom Node.js Express backend, relational SQLite database architecture with foreign keys, interactive Leaflet route mapping, real-time Chart.js budget forecasting, day-by-day scheduling, Brevo transactional email OTP, and collaborative itinerary sharing.*
+*A production-grade, full-stack travel platform featuring a custom Node.js Express backend, relational SQLite database architecture with foreign keys and cascading integrity, interactive Leaflet route mapping, Chart.js real-time financial telemetry, day-by-day itinerary timeline scheduling, Brevo transactional verification emails, and collaborative public sharing.*
 
 ---
 
@@ -24,137 +24,131 @@
 ---
 
 ## Table of Contents
-1. [Core Features and Capabilities](#core-features-and-capabilities)
-2. [Complete End-to-End System and User Flowcharts](#complete-end-to-end-system-and-user-flowcharts)
-3. [13 Screens Feature Matrix](#13-screens-feature-matrix)
-4. [Relational Database Design and Schema Specification](#relational-database-design-and-schema-specification)
-5. [Authentication and Brevo Transactional Email Flow](#authentication-and-brevo-transactional-email-flow)
-6. [Demo Accounts](#demo-accounts)
-7. [Installation and Startup Guide](#installation-and-startup-guide)
-8. [REST API Endpoints Specification](#rest-api-endpoints-specification)
+1. [Hackathon Problem Statement & Requirements Alignment](#1-hackathon-problem-statement--requirements-alignment)
+2. [End-to-End System Architecture & User Flowcharts](#2-end-to-end-system-architecture--user-flowcharts)
+3. [13 Complete Application Screens Matrix](#3-13-complete-application-screens-matrix)
+4. [Relational Database Design & Schema Specification](#4-relational-database-design--schema-specification)
+5. [Authentication & Transactional Email Security Flow](#5-authentication--transactional-email-security-flow)
+6. [Demo Accounts & Evaluation Credentials](#6-demo-accounts--evaluation-credentials)
+7. [Repository Structure & Clean Architecture](#7-repository-structure--clean-architecture)
+8. [Installation & Startup Guide](#8-installation--startup-guide)
+9. [REST API Endpoints Specification](#9-rest-api-endpoints-specification)
 
 ---
 
-## Core Features and Capabilities
+## 1. Hackathon Problem Statement & Requirements Alignment
 
-- **Custom Node.js and Relational Database Architecture**: Fully transparent database table design written in code (`backend/schema.sql` and `backend/src/config/db.js`), utilizing SQLite with foreign key constraints, cascading deletions, and performance indexing.
-- **Modern Glassmorphic UI**: Designed with Tailwind CSS, Lucide travel icons, dark/light theme switching, responsive grid layouts, and micro-interactions powered by Framer Motion and Canvas Confetti.
-- **Interactive Leaflet Route Maps**: Connected multi-city polyline routes with flight arcs, custom numbered map markers, stop-order pins, and popup activity summaries.
-- **Real-Time Financial Analytics**: Interactive Chart.js Doughnut (Expense Categories) and Stacked Bar (City-by-City Cost Distribution) charts with live over-budget alert banners.
-- **Smart Country and Phone Code Auto-Binding**: Real-time country selector (India, United States, United Kingdom, France, Japan, United Arab Emirates, etc.) that automatically sets the matching international dial code (+91, +1, +44, etc.) and default home currency.
-- **Profile Photo Customizer**: Curated avatar presets with selection states plus custom photo URL input.
-- **Brevo Transactional Emails**: Dispatches 6-digit OTP verification codes and HTML welcome onboarding emails, featuring a development simulation fallback for testing.
-- **Public Share and 1-Click Fork**: Shareable public URLs that allow fellow travelers to view, copy, or fork any itinerary into their personal account.
-- **Admin and Analytics Governance**: Dedicated administrator control panel with platform KPIs, top destination visit metrics, category spending distributions, and user management.
+| Core Hackathon Requirement | GlobeTrotter Implementation | Code Verification Link |
+|---|---|---|
+| **Multi-City Itinerary Planning** | Dynamic multi-destination planner with sequential stop reordering, dates allocation, transport modes (flight, train, bus, car), and activities. | [`ItineraryBuilder.tsx`](frontend/src/pages/ItineraryBuilder.tsx) |
+| **Relational Database Design** | 8 interrelated SQL tables with strict Foreign Key constraints, `ON DELETE CASCADE`, composite keys, and performance indexing. | [`schema.sql`](backend/schema.sql) & [`db.js`](backend/src/config/db.js) |
+| **Interactive Route Visualizer** | Multi-stop Leaflet map connecting destination coordinates with flight arcs, numbered pins, and popup activity summaries. | [`MapView.tsx`](frontend/src/components/MapView.tsx) |
+| **Real-Time Budget Analytics** | Real-time expense breakdown with Chart.js Doughnut (categories) and Bar (stops) charts + over-budget alert banner. | [`BudgetBreakdown.tsx`](frontend/src/pages/BudgetBreakdown.tsx) |
+| **User Authentication & OTP** | Custom JWT auth + password hashing + Brevo transactional HTML email verification codes (10 min expiry). | [`authController.js`](backend/src/controllers/authController.js) |
+| **Public Itinerary Sharing** | Unique shareable slugs (`/share/:slug`) with read-only view and 1-click "Fork / Copy to My Trips" cloning. | [`SharedItinerary.tsx`](frontend/src/pages/SharedItinerary.tsx) |
+| **Admin Governance Console** | Dedicated dashboard with platform KPIs, top destinations ranking, category spending metrics, and user management. | [`AdminDashboard.tsx`](frontend/src/pages/AdminDashboard.tsx) |
 
 ---
 
-## Complete End-to-End System and User Flowcharts
+## 2. End-to-End System Architecture & User Flowcharts
 
-### 1. Platform Navigation and User Journey Flow
+### Platform Navigation and User Journey
 ```mermaid
 flowchart TD
-    Start([Visitor Lands on GlobeTrotter]) --> CheckAuth{Logged In?}
+    Start["Visitor Lands on GlobeTrotter"] --> CheckAuth{"User Authenticated?"}
 
-    %% Authentication Branch
-    CheckAuth -- No --> AuthPage[Screen 1: Login / Signup / OTP]
-    AuthPage -->|Sign Up + Country & Phone| BrevoWelcome[Brevo Welcome Email Sent]
-    AuthPage -->|Forgot Password| BrevoOTP[Brevo 6-Digit OTP Sent]
-    BrevoOTP --> VerifyOTP[Verify OTP & Set New Password]
+    CheckAuth -- "No" --> AuthPage["Screen 1: Login / Signup / OTP"]
+    AuthPage -->|"Sign Up Form"| BrevoWelcome["Brevo Transactional Welcome Email"]
+    AuthPage -->|"Forgot Password"| BrevoOTP["Brevo 6-Digit Verification Code"]
+    BrevoOTP --> VerifyOTP["Verify Code & Reset Password"]
     VerifyOTP --> AuthPage
-    AuthPage -->|JWT Token Issued| Dashboard
+    AuthPage -->|"JWT Token Issued"| Dashboard
 
-    %% Authenticated Core Experience
-    CheckAuth -- Yes --> Dashboard[Screen 2: Dashboard / Home Hub]
+    CheckAuth -- "Yes" --> Dashboard["Screen 2: Traveler Dashboard Hub"]
 
-    Dashboard --> PlanNew[Screen 3: Create Trip Blueprint]
-    Dashboard --> ExploreCities[Screen 7: City Search & Catalog]
-    Dashboard --> ExploreActivities[Screen 8: Activity Catalog]
-    Dashboard --> MyTripsList[Screen 4: My Trips Management]
-    Dashboard --> ProfileSettings[Screen 12: User Profile & Wishlist]
-    Dashboard -->|Role = Admin| AdminPanel[Screen 13: Admin Analytics & Governance]
+    Dashboard --> PlanNew["Screen 3: Create Trip Blueprint"]
+    Dashboard --> ExploreCities["Screen 7: City Search & Catalog"]
+    Dashboard --> ExploreActivities["Screen 8: Activity Catalog"]
+    Dashboard --> MyTripsList["Screen 4: My Trips Management"]
+    Dashboard --> ProfileSettings["Screen 12: User Profile & Wishlist"]
+    Dashboard -->|"Role = Admin"| AdminPanel["Screen 13: Admin Governance Console"]
 
-    %% Itinerary Creation Flow
-    PlanNew -->|Enter Dates, Budget & Cover| ItinBuilder[Screen 5: Multi-City Itinerary Builder]
-    ItinBuilder -->|Add Cities, Order, Transit| StopActivities[Assign Activities & Daily Costs]
-    StopActivities --> ItinView[Screen 6: Itinerary View & Interactive Leaflet Map]
+    PlanNew -->|"Dates, Budget & Cover"| ItinBuilder["Screen 5: Itinerary Builder"]
+    ItinBuilder -->|"Reorder Stops & Assign Activities"| ItinView["Screen 6: Itinerary View & Leaflet Map"]
 
-    %% Deep Itinerary Views
-    ItinView --> BudgetScreen[Screen 9: Budget & Cost Analytics Charts]
-    ItinView --> CalendarScreen[Screen 10: Trip Calendar & Timeline]
-    ItinView --> GenerateShare[Generate Public Share Slug]
+    ItinView --> BudgetScreen["Screen 9: Budget & Cost Analytics"]
+    ItinView --> CalendarScreen["Screen 10: Trip Calendar & Agenda"]
+    ItinView --> GenerateShare["Generate Public Share Slug"]
 
-    %% Public Sharing Flow
-    GenerateShare --> PublicItin[Screen 11: Public Itinerary Page]
-    PublicItin -->|Share on WhatsApp / X / Link| SocialViral[Community Discovery]
-    PublicItin -->|Fork / Copy to My Trips| ForkAction[Clone Itinerary to User Account]
+    GenerateShare --> PublicItin["Screen 11: Public Itinerary Page"]
+    PublicItin -->|"Fork / Copy Trip"| ForkAction["Clone Itinerary to User Account"]
     ForkAction --> MyTripsList
 ```
 
 ---
 
-### 2. Multi-City Trip Builder and Route Execution Pipeline
+### Multi-City Trip Builder Pipeline
 ```mermaid
 flowchart LR
-    subgraph Step1["1. Blueprint Setup"]
-        A[Title & Description] --> B[Start & End Dates]
-        B --> C[Set Total Budget & Currency]
-        C --> D[Choose Cover Image]
+    subgraph Phase1["1. Blueprint Setup"]
+        A["Title & Notes"] --> B["Start & End Dates"]
+        B --> C["Total Budget & Currency"]
+        C --> D["Cover Image Preset"]
     end
 
-    subgraph Step2["2. Itinerary Builder"]
-        E[Search Global Destination] --> F[Select Transit Mode: Flight/Train/Bus/Car]
-        F --> G[Reorder Stops: Move Up / Down]
-        G --> H[Assign Master or Custom Activities]
+    subgraph Phase2["2. Itinerary Builder"]
+        E["Search Global City"] --> F["Select Transport Mode"]
+        F --> G["Reorder Stops Sequence"]
+        G --> H["Schedule Daily Activities"]
     end
 
-    subgraph Step3["3. Real-Time Telemetry"]
-        I[Leaflet Route Polyline]
-        J[Chart.js Category Doughnut]
-        K[Over-Budget Threshold Detection]
+    subgraph Phase3["3. Live Telemetry"]
+        I["Leaflet Polyline Map"]
+        J["Chart.js Expense Distribution"]
+        K["Over-Budget Protection"]
     end
 
-    Step1 --> Step2
-    Step2 --> Step3
+    Phase1 --> Phase2
+    Phase2 --> Phase3
 ```
 
 ---
 
-## 13 Screens Feature Matrix
+## 3. 13 Complete Application Screens Matrix
 
-| # | Screen Name | Route Path | Core Capabilities and Layout Polish |
+| # | Screen Name | Route Path | Core Capabilities & UI Highlights |
 |---|---|---|---|
-| **1** | **Login / Signup / OTP** | `/login` | Split-screen travel artwork, profile photo picker (presets + URL), country selector with auto-dial code (+91, +1, +44), password strength meter, custom JWT + Brevo OTP email flow, and 1-click demo login buttons. |
-| **2** | **Dashboard / Home** | `/dashboard` | Personalized traveler greeting with user avatar, quick KPI cards (Trips, Destinations, Budget), prominent "Plan New Trip" hero CTA, recent trips stream, and trending global destinations carousel. |
-| **3** | **Create Trip** | `/create-trip` | Step-by-step trip blueprint form: Title, start & end date picker with auto-calculated duration, budget input, currency selector, curated high-res cover photos, and live preview card. |
+| **1** | **Login / Signup / OTP** | `/login` | Cartoon avatar selector (DiceBear vectors), country auto-dial code binding (+91, +1, +44), password strength meter, 6-digit OTP code input, custom JWT session tokens. |
+| **2** | **Dashboard / Home** | `/dashboard` | Traveler greeting, KPI telemetry cards (Trips, Destinations, Budget), "Plan New Trip" CTA, recent itineraries stream, and trending global destinations carousel. |
+| **3** | **Create Trip** | `/create-trip` | Step-by-step trip blueprint form: Title, start & end date picker with auto-calculated duration, budget input, currency selector, high-res cover photo presets, and live preview card. |
 | **4** | **My Trips (List View)** | `/my-trips` | Filter tabs (All, Upcoming, Ongoing, Completed), search bar, Grid/List view toggle, summary cards with budget progress meters, actions (View, Edit, Duplicate, Share, Delete). |
-| **5** | **Itinerary Builder** | `/itinerary/:id/builder` | Interactive multi-city builder: "Add Stop" modal with city search autocomplete, date allocation per stop, drag/move up-down city reordering, transport mode selector (flight, train, bus, car), and activity assigner. |
-| **6** | **Itinerary View** | `/itinerary/:id` | Comprehensive itinerary visualizer: Day-wise breakdown, city headers, activity blocks with time/cost/category badges, and dual view toggle (Interactive Timeline vs Route Map), plus Print/PDF export. |
-| **7** | **City Search & Explore** | `/explore-cities` | Global destination discovery directory: Filter by continent/region (Europe, Asia, Americas, Africa, Oceania), cost index ($, $$, $$$, $$$$), popularity rating, and direct "Add to Trip" action modal. |
-| **8** | **Activity Search & Catalog** | `/activities` | Browse experiences by category (Sightseeing, Food & Dining, Adventure, Culture, Nightlife, Relaxation), max price filter, and modal preview with instant "Add to Stop" scheduling. |
+| **5** | **Itinerary Builder** | `/itinerary/:id/builder` | Multi-city builder: "Add Stop" modal with city search autocomplete, date allocation per stop, drag/move up-down city reordering, transport mode selector (flight, train, bus, car), and activity assigner. |
+| **6** | **Itinerary View** | `/itinerary/:id` | Day-wise breakdown, city headers, activity blocks with time/cost/category badges, dual view toggle (Interactive Timeline vs Leaflet Route Map), and Print/PDF export. |
+| **7** | **City Search & Explore** | `/explore-cities` | Global destination directory: Filter by continent (Europe, Asia, Americas, Africa, Oceania), cost index ($, $$, $$$, $$$$), popularity rating, and direct "Add to Trip" modal. |
+| **8** | **Activity Search & Catalog** | `/activities` | Experiences directory by category (Sightseeing, Food, Adventure, Culture, Nightlife, Relax), max price filter, and modal preview with instant "Add to Stop" scheduling. |
 | **9** | **Trip Budget & Cost Breakdown** | `/itinerary/:id/budget` | Financial dashboard: Budget vs Total Cost, interactive Doughnut Chart (Transport, Accommodation, Activities, Food, Misc) and daily spending Bar Chart, currency switcher, and over-budget alert banners. |
 | **10** | **Trip Calendar & Timeline** | `/itinerary/:id/calendar` | Interactive calendar view with day ribbons, expandable day views, and sequential activity timeline showing scheduled start times and durations. |
-| **11** | **Shared / Public Itinerary** | `/share/:slug` | Clean read-only presentation page accessible via public URL/slug, interactive route map, summary stats, "Copy Trip to My Account" feature, and one-click social share buttons (WhatsApp, Twitter/X, Copy Link). |
-| **12** | **User Profile & Settings** | `/profile` | Editable user details (name, avatar, bio, home country, phone number, currency), travel style tags (Solo, Luxury, Backpacking, Foodie, Nature), saved wishlist destinations, and danger-zone account deletion. |
-| **13** | **Admin / Analytics Dashboard** | `/admin` | Admin-only control center: Platform KPIs (Total Users, Trips Created, Total Budget), top destination visit rankings, category expenditure stats, and user governance table with role toggles. |
+| **11** | **Shared / Public Itinerary** | `/share/:slug` | Read-only presentation page accessible via public URL/slug, interactive route map, summary stats, "Copy Trip to My Account" feature, and one-click social share buttons (WhatsApp, Twitter/X, Copy Link). |
+| **12** | **User Profile & Settings** | `/profile` | Editable user details (name, avatar, bio, home country, phone number, currency), travel style tags, saved wishlist destinations, and danger-zone account deletion. |
+| **13** | **Admin / Analytics Dashboard** | `/admin` | Admin control center: Platform KPIs (Total Users, Trips Created, Total Budget), top destination rankings, category expenditure stats, and user governance table with role toggles. |
 
 ---
 
-## Relational Database Design and Schema Specification
+## 4. Relational Database Design & Schema Specification
 
-The complete SQL Data Definition Language (DDL) is located in **`backend/schema.sql`** and initialized programmatically in **`backend/src/config/db.js`**.
+The complete SQL Data Definition Language (DDL) is located in **[`backend/schema.sql`](backend/schema.sql)** and initialized programmatically in **[`backend/src/config/db.js`](backend/src/config/db.js)**.
 
 ```mermaid
 erDiagram
-    USERS ||--o{ TRIPS : creates
-    USERS ||--o{ SAVED_WISHLIST : saves
-    TRIPS ||--o{ TRIP_STOPS : contains
-    TRIP_STOPS ||--o{ STOP_ACTIVITIES : schedules
-    DESTINATIONS_MASTER ||--o{ DESTINATION_ACTIVITIES_MASTER : has
-    DESTINATIONS_MASTER ||--o{ SAVED_WISHLIST : bookmarked_in
+    USERS ||--o{ TRIPS : "creates"
+    USERS ||--o{ SAVED_WISHLIST : "saves"
+    TRIPS ||--o{ TRIP_STOPS : "contains"
+    TRIP_STOPS ||--o{ STOP_ACTIVITIES : "schedules"
+    DESTINATIONS_MASTER ||--o{ DESTINATION_ACTIVITIES_MASTER : "has"
+    DESTINATIONS_MASTER ||--o{ SAVED_WISHLIST : "bookmarked_in"
 
     USERS {
-        string id PK
+        string id
         string name
         string email
         string password
@@ -169,8 +163,8 @@ erDiagram
     }
 
     TRIPS {
-        string id PK
-        string user_id FK
+        string id
+        string user_id
         string title
         string description
         string cover_image
@@ -183,8 +177,8 @@ erDiagram
     }
 
     TRIP_STOPS {
-        string id PK
-        string trip_id FK
+        string id
+        string trip_id
         string city_name
         string country
         float lat
@@ -199,8 +193,8 @@ erDiagram
     }
 
     STOP_ACTIVITIES {
-        string id PK
-        string stop_id FK
+        string id
+        string stop_id
         string title
         string category
         float cost
@@ -210,7 +204,7 @@ erDiagram
     }
 
     DESTINATIONS_MASTER {
-        string id PK
+        string id
         string name
         string country
         string continent
@@ -223,54 +217,112 @@ erDiagram
     }
 ```
 
-### Relational Table Design Summary
-1. **`users`**: Identity records, password hashes, country, phone dial code, home currency, preferences.
-2. **`email_verifications`**: OTP token ledger with 10-minute expiry timestamps for registration and password resets.
-3. **`trips`**: Multi-city trip blueprints linked to `users(id)` via Foreign Key with `ON DELETE CASCADE`.
-4. **`trip_stops`**: Sequential destinations linked to `trips(id)` with transit mode, dates, and stay costs.
-5. **`stop_activities`**: Granular scheduled items linked to `trip_stops(id)` with categories and costs.
-6. **`destinations_master`**: Global curated cities catalog with geolocation coordinates and ratings.
-7. **`destination_activities_master`**: Pre-built activities linked to `destinations_master(id)`.
-8. **`saved_wishlist`**: Unique composite relation `(user_id, destination_id)` with cascading integrity.
+### Relational Database Table Architecture
+
+| Table Name | Primary Key | Foreign Keys & Cascades | Purpose & Business Logic |
+|---|---|---|---|
+| `users` | `id` (TEXT) | None | Core traveler and admin identity records, bcrypt password hashes, and regional configuration. |
+| `email_verifications` | `id` (TEXT) | None | 6-digit OTP verification token ledger with 10-minute validity timestamps. |
+| `trips` | `id` (TEXT) | `user_id` $\rightarrow$ `users(id)` `ON DELETE CASCADE` | Multi-city itinerary blueprint with total budget, currency, and public share slug. |
+| `trip_stops` | `id` (TEXT) | `trip_id` $\rightarrow$ `trips(id)` `ON DELETE CASCADE` | Sequential destination stops with lat/lng coordinates, arrival/departure dates, and transit mode. |
+| `stop_activities` | `id` (TEXT) | `stop_id` $\rightarrow$ `trip_stops(id)` `ON DELETE CASCADE` | Granular scheduled items allocated to a stop with start time, duration, and individual cost. |
+| `destinations_master`| `id` (TEXT) | None | Curated catalog of global cities with continent, cost tier ($-$$$$), and popularity rating. |
+| `destination_activities_master` | `id` (TEXT) | `destination_id` $\rightarrow$ `destinations_master(id)` `ON DELETE CASCADE` | Pre-built activity catalog for instant 1-click addition to traveler itineraries. |
+| `saved_wishlist` | `id` (TEXT) | `user_id` $\rightarrow$ `users(id)`, `destination_id` $\rightarrow$ `destinations_master(id)` | Composite relation `UNIQUE(user_id, destination_id)` for bookmarked destinations. |
 
 ---
 
-## Authentication and Brevo Transactional Email Flow
+## 5. Authentication & Transactional Email Security Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Traveler as Traveler
+    participant Traveler as Traveler User
     participant Frontend as React 19 Frontend
-    participant Backend as Express Backend
-    participant DB as SQLite Relational Database
-    participant Brevo as Brevo Email API
+    participant Backend as Express API Server
+    participant DB as SQLite Relational DB
+    participant Brevo as Brevo Transactional API
 
-    Traveler->>Frontend: Register (Name, Email, Password, Country, Phone, Photo)
+    Traveler->>Frontend: Register (Name, Email, Password, Country, Phone, Avatar)
     Frontend->>Backend: POST /api/auth/register
     Backend->>DB: Hash Password (bcrypt) & Save User Record
-    Backend->>DB: Generate 6-Digit Verification OTP (10 min expiry)
-    Backend-->>Brevo: Dispatch Welcome Email & OTP Verification
-    Brevo-->>Traveler: Deliver HTML Welcome Email & Code
+    Backend->>DB: Generate 6-Digit OTP (10 min expiry)
+    Backend-->>Brevo: Dispatch HTML Welcome Email & Verification Code
+    Brevo-->>Traveler: Deliver Transactional Email to Inbox
     Backend-->>Frontend: Return JWT Session Token (7-day validity)
     Frontend->>Frontend: Store token in localStorage & update AuthContext
-    Frontend-->>Traveler: Navigate to Dashboard
+    Frontend-->>Traveler: Redirect to Personalized Dashboard Hub
 ```
 
 ---
 
-## Demo Accounts
+## 6. Demo Accounts & Evaluation Credentials
 
-| Role | Email | Password | Access / Scope |
+| Role | Email | Password | Access Scope |
 |---|---|---|---|
 | **Traveler (Default)** | `traveler.user@example.com` | `Traveler@123` | Multi-city itineraries, budget analytics, calendar scheduling, wishlist bookmarks |
 | **Administrator** | `admin@globetrotter.com` | `Admin@123` | Platform KPI telemetry, category expenditure charts, user governance directory |
 
-> **Tip**: On the Login screen (`/login`), click the **"Traveler User"** or **"Admin"** 1-click buttons to instantly populate credentials.
+---
+
+## 7. Repository Structure & Clean Architecture
+
+```
+GlobeTrotter/
+├── backend/
+│   ├── globetrotter.db             # Relational SQLite database
+│   ├── schema.sql                  # Pure SQL DDL schema & table design for judges
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── db.js               # Database connection & table initializers
+│   │   ├── controllers/
+│   │   │   ├── adminController.js  # Platform telemetry & user governance
+│   │   │   ├── authController.js   # JWT auth, registration, OTP verification
+│   │   │   ├── destinationsController.js # Cities & activity master catalog
+│   │   │   └── tripController.js   # Multi-city itinerary CRUD & cascading logic
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.js   # JWT token verification & role authorization
+│   │   ├── seed/
+│   │   │   ├── seed.js             # Automated database seeder
+│   │   │   └── seedData.js         # 15 global cities, 50+ curated activities
+│   │   ├── services/
+│   │   │   └── brevoService.js     # Brevo REST API email dispatcher & templates
+│   │   └── server.js               # Express application entrypoint
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── ActivityCard.tsx    # Curated activity card with add modal
+│   │   │   ├── BudgetCharts.tsx    # Chart.js Doughnut & Stacked Bar visualizers
+│   │   │   ├── CityCard.tsx        # Destination card with wishlist toggle
+│   │   │   ├── Footer.tsx          # Responsive footer without emojis
+│   │   │   ├── LoadingScreen.tsx   # Full-screen animated compass loader
+│   │   │   ├── Logo.tsx            # Modern multi-ring vector brand logo
+│   │   │   ├── MapView.tsx         # Interactive Leaflet polyline route map
+│   │   │   ├── Navbar.tsx          # Glassmorphic navigation header
+│   │   │   └── TripCard.tsx        # Multi-city trip card with progress meters
+│   │   ├── context/
+│   │   │   ├── AuthContext.tsx     # Custom JWT authentication context
+│   │   │   ├── ThemeContext.tsx    # Dark / Light theme state manager
+│   │   │   └── ToastContext.tsx    # Modern toast notification provider
+│   │   ├── pages/                  # 13 Application screens
+│   │   ├── services/
+│   │   │   └── api.ts              # Type-safe Axios API client
+│   │   ├── types/
+│   │   │   └── index.ts            # TypeScript interfaces & domain models
+│   │   └── utils/
+│   │       └── countries.ts        # Country code & dial code mapping
+│   ├── index.html
+│   ├── tailwind.config.js
+│   ├── vite.config.ts
+│   └── package.json
+└── README.md
+```
 
 ---
 
-## Installation and Startup Guide
+## 8. Installation & Startup Guide
 
 ### Prerequisites
 - Node.js (v18 or higher)
@@ -302,14 +354,14 @@ Open your browser at: **`http://localhost:5173`**
 
 ---
 
-## REST API Endpoints Specification
+## 9. REST API Endpoints Specification
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Register new user with country, phone, avatar and trigger Brevo emails | No |
-| `POST` | `/api/auth/login` | Authenticate user and receive JWT token | No |
-| `POST` | `/api/auth/forgot-password`| Request 6-digit Brevo OTP verification code | No |
-| `POST` | `/api/auth/reset-password` | Reset password using verified OTP | No |
+| `POST` | `/api/auth/register` | Register new user with country, phone, cartoon avatar and trigger Brevo emails | No |
+| `POST` | `/api/auth/login` | Authenticate user and receive JWT session token | No |
+| `POST` | `/api/auth/forgot-password`| Request 6-digit verification code | No |
+| `POST` | `/api/auth/reset-password` | Reset password using verified 6-digit code | No |
 | `GET` | `/api/auth/profile` | Get current authenticated user profile and stats | Yes (Bearer) |
 | `PUT` | `/api/auth/profile` | Update profile, bio, country, phone, preferences | Yes (Bearer) |
 | `GET` | `/api/trips` | Get all user trips with computed stops and costs | Yes (Bearer) |
@@ -327,5 +379,5 @@ Open your browser at: **`http://localhost:5173`**
 
 ---
 
-## License and Attribution
+## License & Attribution
 Designed and developed for the **Odoo Hackathon 2026**. Licensed under the [MIT License](LICENSE).
