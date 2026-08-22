@@ -51,7 +51,7 @@ export const LoginSignup: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
 
-  const { login, register, isAuthenticated, isSupabaseActive } = useAuth();
+  const { login, register, isAuthenticated } = useAuth();
   const { success, error, info } = useToast();
   const navigate = useNavigate();
 
@@ -514,7 +514,7 @@ export const LoginSignup: React.FC = () => {
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>JWT + Brevo OTP + Supabase Ready</span>
+              <span>JWT + Brevo OTP + Relational Architecture</span>
             </span>
             <span>Odoo Hackathon</span>
           </div>
@@ -545,13 +545,13 @@ export const LoginSignup: React.FC = () => {
             <div className="p-4 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 space-y-2 text-xs">
               <div className="flex items-center gap-1.5 text-amber-300 font-bold">
                 <Database className="w-3.5 h-3.5" />
-                <span>Supabase & Relational Backend</span>
+                <span>Custom Node.js Relational Backend</span>
               </div>
               <ul className="space-y-1 text-white/90">
-                <li>• PostgreSQL database schema with RLS security</li>
-                <li>• Brevo transactional welcome & OTP emails</li>
+                <li>• Relational SQLite schema with Foreign Keys and Cascades</li>
+                <li>• Brevo transactional welcome and OTP emails</li>
                 <li>• Country code auto-detection and phone verification</li>
-                <li>• Real-time budget forecasting & Leaflet route mapping</li>
+                <li>• Real-time budget forecasting and Leaflet route mapping</li>
               </ul>
             </div>
           </div>

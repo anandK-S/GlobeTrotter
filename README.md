@@ -4,7 +4,7 @@
 
 ### Built for the Odoo Hackathon 2026
 
-*An intelligent, full-stack multi-city travel planning platform featuring interactive Leaflet route mapping, real-time Chart.js budget forecasting, day-by-day scheduling, Supabase Cloud / Relational database architecture, Brevo transactional email OTP, and public collaborative itinerary sharing.*
+*An intelligent, full-stack multi-city travel planning platform featuring custom Node.js Express backend, relational SQLite database architecture with foreign keys, interactive Leaflet route mapping, real-time Chart.js budget forecasting, day-by-day scheduling, Brevo transactional email OTP, and collaborative itinerary sharing.*
 
 ---
 
@@ -12,11 +12,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white&style=for-the-badge)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css&logoColor=white&style=for-the-badge)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white&style=for-the-badge)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express&logoColor=white&style=for-the-badge)](https://expressjs.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-Relational_DB-003B57?logo=sqlite&logoColor=white&style=for-the-badge)](https://www.sqlite.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-Maps-199900?logo=leaflet&logoColor=white&style=for-the-badge)](https://leafletjs.com/)
 [![Chart.js](https://img.shields.io/badge/Chart.js-Analytics-FF6384?logo=chartdotjs&logoColor=white&style=for-the-badge)](https://www.chartjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Cloud_Ready-3ECF8E?logo=supabase&logoColor=white&style=for-the-badge)](https://supabase.com/)
 [![Brevo](https://img.shields.io/badge/Brevo-Transactional_Email-0B99FF?logo=sendinblue&logoColor=white&style=for-the-badge)](https://www.brevo.com/)
-[![SQLite](https://img.shields.io/badge/SQLite-Relational_DB-003B57?logo=sqlite&logoColor=white&style=for-the-badge)](https://www.sqlite.org/)
 
 </div>
 
@@ -26,8 +27,8 @@
 1. [Core Features and Capabilities](#core-features-and-capabilities)
 2. [Complete End-to-End System and User Flowcharts](#complete-end-to-end-system-and-user-flowcharts)
 3. [13 Screens Feature Matrix](#13-screens-feature-matrix)
-4. [Hybrid Authentication and Brevo Email Flow](#hybrid-authentication-and-brevo-email-flow)
-5. [Relational Database and Entity Relationship Model](#relational-database-and-entity-relationship-model)
+4. [Relational Database Design and Schema Specification](#relational-database-design-and-schema-specification)
+5. [Authentication and Brevo Transactional Email Flow](#authentication-and-brevo-transactional-email-flow)
 6. [Demo Accounts](#demo-accounts)
 7. [Installation and Startup Guide](#installation-and-startup-guide)
 8. [REST API Endpoints Specification](#rest-api-endpoints-specification)
@@ -36,13 +37,13 @@
 
 ## Core Features and Capabilities
 
+- **Custom Node.js and Relational Database Architecture**: Fully transparent database table design written in code (`backend/schema.sql` and `backend/src/config/db.js`), utilizing SQLite with foreign key constraints, cascading deletions, and performance indexing.
 - **Modern Glassmorphic UI**: Designed with Tailwind CSS, Lucide travel icons, dark/light theme switching, responsive grid layouts, and micro-interactions powered by Framer Motion and Canvas Confetti.
 - **Interactive Leaflet Route Maps**: Connected multi-city polyline routes with flight arcs, custom numbered map markers, stop-order pins, and popup activity summaries.
 - **Real-Time Financial Analytics**: Interactive Chart.js Doughnut (Expense Categories) and Stacked Bar (City-by-City Cost Distribution) charts with live over-budget alert banners.
 - **Smart Country and Phone Code Auto-Binding**: Real-time country selector (India, United States, United Kingdom, France, Japan, United Arab Emirates, etc.) that automatically sets the matching international dial code (+91, +1, +44, etc.) and default home currency.
 - **Profile Photo Customizer**: Curated avatar presets with selection states plus custom photo URL input.
-- **Dual-Backend Architecture**: Works out-of-the-box with a zero-dependency Relational SQLite Backend and provides instant cloud sync with Supabase PostgreSQL (`supabase/schema.sql`).
-- **Brevo Transactional Emails**: Dispatches 6-digit OTP verification codes and HTML welcome onboarding emails, featuring a development simulation fallback for judging.
+- **Brevo Transactional Emails**: Dispatches 6-digit OTP verification codes and HTML welcome onboarding emails, featuring a development simulation fallback for testing.
 - **Public Share and 1-Click Fork**: Shareable public URLs that allow fellow travelers to view, copy, or fork any itinerary into their personal account.
 - **Admin and Analytics Governance**: Dedicated administrator control panel with platform KPIs, top destination visit metrics, category spending distributions, and user management.
 
@@ -123,7 +124,7 @@ flowchart LR
 
 | # | Screen Name | Route Path | Core Capabilities and Layout Polish |
 |---|---|---|---|
-| **1** | **Login / Signup / OTP** | `/login` | Split-screen travel artwork, profile photo picker (presets + URL), country selector with auto-dial code (+91, +1, +44), password strength meter, JWT + Supabase + Brevo OTP email flow, and 1-click demo login buttons. |
+| **1** | **Login / Signup / OTP** | `/login` | Split-screen travel artwork, profile photo picker (presets + URL), country selector with auto-dial code (+91, +1, +44), password strength meter, custom JWT + Brevo OTP email flow, and 1-click demo login buttons. |
 | **2** | **Dashboard / Home** | `/dashboard` | Personalized traveler greeting with user avatar, quick KPI cards (Trips, Destinations, Budget), prominent "Plan New Trip" hero CTA, recent trips stream, and trending global destinations carousel. |
 | **3** | **Create Trip** | `/create-trip` | Step-by-step trip blueprint form: Title, start & end date picker with auto-calculated duration, budget input, currency selector, curated high-res cover photos, and live preview card. |
 | **4** | **My Trips (List View)** | `/my-trips` | Filter tabs (All, Upcoming, Ongoing, Completed), search bar, Grid/List view toggle, summary cards with budget progress meters, actions (View, Edit, Duplicate, Share, Delete). |
@@ -139,31 +140,9 @@ flowchart LR
 
 ---
 
-## Hybrid Authentication and Brevo Email Flow
+## Relational Database Design and Schema Specification
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Traveler as Traveler
-    participant Frontend as React 19 Frontend
-    participant Backend as Express Backend
-    participant DB as Relational SQLite / Postgres
-    participant Brevo as Brevo Email API
-
-    Traveler->>Frontend: Register (Name, Email, Password, Country, Phone, Photo)
-    Frontend->>Backend: POST /api/auth/register
-    Backend->>DB: Hash Password (bcrypt) & Save User Record
-    Backend->>DB: Generate 6-Digit Verification OTP (10 min expiry)
-    Backend-->>Brevo: Dispatch Welcome Email & OTP Verification
-    Brevo-->>Traveler: Deliver HTML Welcome Email & Code
-    Backend-->>Frontend: Return JWT Session Token (7-day validity)
-    Frontend->>Frontend: Store token in localStorage & update AuthContext
-    Frontend-->>Traveler: Navigate to Dashboard
-```
-
----
-
-## Relational Database and Entity Relationship Model
+The complete SQL Data Definition Language (DDL) is located in **`backend/schema.sql`** and initialized programmatically in **`backend/src/config/db.js`**.
 
 ```mermaid
 erDiagram
@@ -242,6 +221,40 @@ erDiagram
         float lat
         float lng
     }
+```
+
+### Relational Table Design Summary
+1. **`users`**: Identity records, password hashes, country, phone dial code, home currency, preferences.
+2. **`email_verifications`**: OTP token ledger with 10-minute expiry timestamps for registration and password resets.
+3. **`trips`**: Multi-city trip blueprints linked to `users(id)` via Foreign Key with `ON DELETE CASCADE`.
+4. **`trip_stops`**: Sequential destinations linked to `trips(id)` with transit mode, dates, and stay costs.
+5. **`stop_activities`**: Granular scheduled items linked to `trip_stops(id)` with categories and costs.
+6. **`destinations_master`**: Global curated cities catalog with geolocation coordinates and ratings.
+7. **`destination_activities_master`**: Pre-built activities linked to `destinations_master(id)`.
+8. **`saved_wishlist`**: Unique composite relation `(user_id, destination_id)` with cascading integrity.
+
+---
+
+## Authentication and Brevo Transactional Email Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Traveler as Traveler
+    participant Frontend as React 19 Frontend
+    participant Backend as Express Backend
+    participant DB as SQLite Relational Database
+    participant Brevo as Brevo Email API
+
+    Traveler->>Frontend: Register (Name, Email, Password, Country, Phone, Photo)
+    Frontend->>Backend: POST /api/auth/register
+    Backend->>DB: Hash Password (bcrypt) & Save User Record
+    Backend->>DB: Generate 6-Digit Verification OTP (10 min expiry)
+    Backend-->>Brevo: Dispatch Welcome Email & OTP Verification
+    Brevo-->>Traveler: Deliver HTML Welcome Email & Code
+    Backend-->>Frontend: Return JWT Session Token (7-day validity)
+    Frontend->>Frontend: Store token in localStorage & update AuthContext
+    Frontend-->>Traveler: Navigate to Dashboard
 ```
 
 ---

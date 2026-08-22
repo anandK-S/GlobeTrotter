@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { api } from '../services/api';
 import { useToast } from './ToastContext';
-import { isSupabaseConfigured, supabaseAuth } from '../services/supabase';
 
 interface RegisterParams {
   name: string;
@@ -22,7 +21,6 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  isSupabaseActive: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (params: RegisterParams) => Promise<{ success: boolean; otpPreview?: string }>;
   logout: () => void;
@@ -36,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('globetrotter_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { success, error, info } = useToast();
+  const { success, error } = useToast();
 
   const fetchCurrentUser = async () => {
     if (!token) {
@@ -66,19 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // 1. Try Supabase Auth if configured
-      if (isSupabaseConfigured) {
-        try {
-          const supaRes = await supabaseAuth.signIn({ email, password });
-          if (supaRes?.session?.access_token) {
-            info('Supabase Connected', 'Authenticated with Supabase Cloud Auth.');
-          }
-        } catch (supaErr: any) {
-          console.warn('Supabase Auth note:', supaErr.message);
-        }
-      }
-
-      // 2. Standard backend JWT auth
       const res = await api.auth.login({ email, password });
       if (res.success && res.token) {
         localStorage.setItem('globetrotter_token', res.token);
@@ -99,25 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (params: RegisterParams): Promise<{ success: boolean; otpPreview?: string }> => {
     setIsLoading(true);
     try {
-      // 1. If Supabase is configured, sync to Supabase
-      if (isSupabaseConfigured) {
-        try {
-          await supabaseAuth.signUp({
-            email: params.email,
-            password: params.password,
-            name: params.name,
-            avatarUrl: params.avatar_url,
-            country: params.country,
-            phoneCode: params.phone_code,
-            phoneNumber: params.phone_number
-          });
-          info('Supabase User Synced', 'Registered with Supabase Cloud.');
-        } catch (supaErr: any) {
-          console.warn('Supabase signup note:', supaErr.message);
-        }
-      }
-
-      // 2. Register with Relational Backend
       const res = await api.auth.register(params);
       if (res.success && res.token) {
         localStorage.setItem('globetrotter_token', res.token);
@@ -139,9 +105,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('globetrotter_token');
     setToken(null);
     setUser(null);
-    if (isSupabaseConfigured) {
-      supabaseAuth.signOut().catch(() => {});
-    }
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
@@ -181,7 +144,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAuthenticated,
         isAdmin,
-        isSupabaseActive: isSupabaseConfigured,
         login,
         register,
         logout,
