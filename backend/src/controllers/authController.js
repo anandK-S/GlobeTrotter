@@ -226,6 +226,17 @@ export async function resetPassword(req, res) {
       return res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
     }
 
+    const user = await db.get('SELECT id, password FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
+    if (user && user.password) {
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password cannot be the same as your old password. Please choose a different password.'
+        });
+      }
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 

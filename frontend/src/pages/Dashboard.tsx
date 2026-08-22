@@ -20,6 +20,7 @@ import { api } from '../services/api';
 import { TripCard } from '../components/TripCard';
 import { CityCard } from '../components/CityCard';
 import { useToast } from '../context/ToastContext';
+import { formatCurrency } from '../utils/formatters';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
-            Where to next, {user?.name.split(' ')[0] || 'Traveler'}? ✈️
+            Where to next, {user?.name.split(' ')[0] || 'Traveler'}?
           </h1>
 
           <p className="text-sm sm:text-base text-white/90 leading-relaxed font-normal">
@@ -149,12 +150,12 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Total Budget */}
+        {/* Total Budget formatted by User Currency */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Planned Budget</p>
             <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 mt-1">
-              ${totalPlannedBudget.toLocaleString()}
+              {formatCurrency(totalPlannedBudget, user?.home_currency || 'INR')}
             </p>
             <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">Across all plans</p>
           </div>

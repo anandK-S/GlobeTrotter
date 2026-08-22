@@ -13,6 +13,7 @@ import { Doughnut, Bar } from 'react-chartjs-2';
 import { TripMetrics, TripStop } from '../types';
 import { AlertCircle, CheckCircle, TrendingUp, DollarSign, Wallet, PieChart } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { formatCurrency, getCurrencySymbol } from '../utils/formatters';
 
 ChartJS.register(
   ArcElement,
@@ -107,7 +108,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => ` ${context.dataset.label}: $${context.raw}`
+          label: (context: any) => ` ${context.dataset.label}: ${formatCurrency(context.raw, currency)}`
         }
       }
     },
@@ -122,14 +123,14 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
         grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' },
         ticks: {
           color: isDark ? '#94a3b8' : '#64748b',
-          callback: (value: any) => `$${value}`
+          callback: (value: any) => `${getCurrencySymbol(currency)}${value}`
         }
       }
     }
   };
 
   const totalDays = stops.length > 0 ? stops.length * 2 : 1; // approximate days
-  const avgCostPerDay = metrics.total_estimated_cost > 0 ? (metrics.total_estimated_cost / Math.max(totalDays, 1)).toFixed(1) : '0';
+  const avgCostPerDay = metrics.total_estimated_cost > 0 ? (metrics.total_estimated_cost / Math.max(totalDays, 1)).toFixed(0) : '0';
 
   const budgetUsagePercent = metrics.total_budget > 0 
     ? Math.min(Math.round((metrics.total_estimated_cost / metrics.total_budget) * 100), 100) 
@@ -146,7 +147,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Budget</p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
-              ${metrics.total_budget.toLocaleString()}
+              {formatCurrency(metrics.total_budget, currency)}
             </p>
             <p className="text-xs text-slate-500 mt-1">Planned allocation</p>
           </div>
@@ -160,7 +161,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estimated Total</p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
-              ${metrics.total_estimated_cost.toLocaleString()}
+              {formatCurrency(metrics.total_estimated_cost, currency)}
             </p>
             <p className="text-xs text-slate-500 mt-1">All stops & activities</p>
           </div>
@@ -174,7 +175,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Remaining Buffer</p>
             <p className={`text-2xl font-black mt-1 ${metrics.remaining_budget < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-              ${Math.abs(metrics.remaining_budget).toLocaleString()}
+              {formatCurrency(Math.abs(metrics.remaining_budget), currency)}
               {metrics.remaining_budget < 0 && <span className="text-xs font-medium ml-1">over</span>}
             </p>
             <p className="text-xs text-slate-500 mt-1">
@@ -191,7 +192,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Daily Spending Avg</p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
-              ${avgCostPerDay}
+              {formatCurrency(Number(avgCostPerDay), currency)}
             </p>
             <p className="text-xs text-slate-500 mt-1">Per day estimated</p>
           </div>
@@ -209,7 +210,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
           <div>
             <h5 className="font-bold text-sm">Budget Cap Warning</h5>
             <p className="text-xs mt-0.5 opacity-90">
-              Your planned expenses exceed the allocated budget by <strong>${Math.abs(metrics.remaining_budget).toLocaleString()}</strong>. Consider adjusting lodging or activity tiers.
+              Your planned expenses exceed the allocated budget by <strong>{formatCurrency(Math.abs(metrics.remaining_budget), currency)}</strong>. Consider adjusting lodging or activity tiers.
             </p>
           </div>
         </div>
@@ -253,7 +254,7 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
                 <span className="text-xs text-slate-400 font-medium">Total</span>
                 <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  ${metrics.total_estimated_cost}
+                  {formatCurrency(metrics.total_estimated_cost, currency)}
                 </span>
               </div>
             </div>
@@ -262,15 +263,15 @@ export const BudgetCharts: React.FC<BudgetChartsProps> = ({
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Transport:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">${metrics.total_transport_cost}</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(metrics.total_transport_cost, currency)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Lodging:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">${metrics.total_stay_cost}</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(metrics.total_stay_cost, currency)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Activities:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">${metrics.total_activities_cost}</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(metrics.total_activities_cost, currency)}</span>
             </div>
           </div>
         </div>

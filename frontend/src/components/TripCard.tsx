@@ -15,6 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { formatCurrency } from '../utils/formatters';
 
 interface TripCardProps {
   trip: Trip;
@@ -192,8 +193,8 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onDelete, onDuplicate 
         {/* Budget Bar */}
         <div className="space-y-1.5 mt-auto pt-2 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-500">Est. Cost: <strong className="text-slate-900 dark:text-slate-100">${totalCost.toLocaleString()}</strong></span>
-            <span className="text-slate-400">Budget: ${budget.toLocaleString()}</span>
+            <span className="text-slate-500">Est. Cost: <strong className="text-slate-900 dark:text-slate-100">{formatCurrency(totalCost, trip.currency)}</strong></span>
+            <span className="text-slate-400">Budget: {formatCurrency(budget, trip.currency)}</span>
           </div>
           
           <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
