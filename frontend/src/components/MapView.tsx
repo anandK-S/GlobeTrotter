@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet';
 import { TripStop } from '../types';
 import { MapPin, Navigation, Plane, Train, Bus, Car } from 'lucide-react';
+import { formatCurrency } from '../utils/formatters';
 
 // Custom Map Marker Icon Generator
 function createCustomPin(index: number, isSelected: boolean = false) {
@@ -43,7 +44,7 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
       const bounds = L.latLngBounds(positions);
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
     }
-  }, [positions, map]);
+  }, [map, positions]);
 
   return null;
 }
@@ -53,15 +54,16 @@ interface MapViewProps {
   selectedStopId?: string | null;
   onSelectStop?: (stop: TripStop) => void;
   className?: string;
+  currency?: string;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
   stops,
   selectedStopId,
   onSelectStop,
-  className = 'h-96 w-full rounded-2xl overflow-hidden'
+  className = 'h-[400px] w-full rounded-2xl overflow-hidden',
+  currency = 'INR'
 }) => {
-  // Filter valid coordinates
   const validStops = stops.filter(s => typeof s.lat === 'number' && typeof s.lng === 'number' && s.lat !== 0 && s.lng !== 0);
   const positions: [number, number][] = validStops.map(s => [s.lat, s.lng]);
 
@@ -130,7 +132,7 @@ export const MapView: React.FC<MapViewProps> = ({
                 {(stop.stay_cost > 0 || stop.transport_cost > 0) && (
                   <div className="flex items-center justify-between text-xs font-semibold mt-1">
                     <span className="text-slate-500">Stop Est:</span>
-                    <span className="text-emerald-600">${(stop.stay_cost || 0) + (stop.transport_cost || 0)}</span>
+                    <span className="text-emerald-600 font-bold">{formatCurrency((stop.stay_cost || 0) + (stop.transport_cost || 0), currency)}</span>
                   </div>
                 )}
               </div>

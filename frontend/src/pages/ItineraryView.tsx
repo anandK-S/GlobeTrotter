@@ -201,6 +201,7 @@ export const ItineraryView: React.FC = () => {
             stops={stops}
             selectedStopId={selectedStopId}
             onSelectStop={(s) => setSelectedStopId(s.id)}
+            currency={trip?.currency}
             className="h-[520px] w-full rounded-3xl"
           />
 
